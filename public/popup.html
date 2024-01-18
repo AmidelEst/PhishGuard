@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Anti-Phishing Extension</title>
+  <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+
+<body>
+  <div id="mainPage" class="container">
+    <h1>Anti-Phishing Extension</h1>
+    <button id="signUpButton">Sign Up</button>
+    <button id="logInButton">Log In</button>
+  </div>
+
+  <!-- Sign Up form content here -->
+  <div id="signUpPage" class="container hidden">
+    <div class="bg">
+      <main class="form-signin">
+        <h1 class="h3 mb-3">Sign Up</h1>
+        <form id="signupForm">
+          <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" placeholder="Your Name" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Password" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" name="agreeTerms" id="agreeTerms">
+            <label class="form-check-label" for="agreeTerms">I agree to the terms and conditions</label>
+          </div>
+
+          <button class="w-100 btn btn-lg btn-primary" type="submit">Sign Up</button>
+        </form>
+      </main>
+    </div>
+  </div>
+
+
+
+  <!-- Login form content here -->
+  <div id="logInPage" class="container hidden">
+    <div class="bg">
+      <main class="form-signin">
+        <form id="loginForm">
+          <div class="form-floating">
+            <label for="floatingInput">Email address</label>
+            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" required>
+          </div>
+          <div class="form-floating">
+            <label for="floatingPassword">Password</label>
+            <br>
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" required>
+          </div>
+
+          <div class="checkbox mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" value="1" name="remember_me" id="rememberMeSwitch">
+              <label class="form-check-label" for="rememberMeSwitch"> Remember me</label>
+            </div>
+
+          </div>
+          <button class="w-100 btn btn-lg" type="submit">Sign in</button>
+        </form>
+      </main>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,92 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+.container {
+    width: 600px;
+    height: 400px;
+    background-image: url('images/128 pic.png');
+    background-size: cover;
+    background-position: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(11, 117, 255, 0.865);
+    text-align: left;
+    border-radius: 4px;
+  }
+  .container h1{
+    color: rgb(255, 255, 29);
+  }
+  button {
+    background-color: aliceblue;
+    color: black;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* popup.css */
+.hidden {
+  display: none;
+}
+
+.container h2 {
+  color: aliceblue;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  font-size: large;
+  width: 100%; /* Form takes full width of its container */
+}
+
+form label {
+  color:  rgb(255, 240, 27);;
+}
+
+form input {
+  width: 80%; /* Adjust the width of the input fields */
+  margin-bottom: 10px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: aliceblue;
+  color: black;
+  padding: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3; /* Change color on hover if desired */
+}
+
+
+.form-control {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Adjustments for the checkbox and label */
+.form-check-input {
+  display: inline;
+  text-align: left; /* Aligns content to the left */
+}
+
+.form-check-input {
+  margin-left: 0; /* Align checkbox to the very start of the line */
+  width: 13px;
+  height: 13px;
+}
+
+.form-check-label {
+  margin: 0; /* Remove any default margin */
+  order: 2; /* Ensure label is after checkbox when using flex */
+}
