@@ -28,6 +28,6 @@ app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
-signInButton.addEventListener('click', function () {
-  window.location.href = '/login';
-});
+// signInButton.addEventListener('click', function () {
+//   window.location.href = '/login';
+// });
