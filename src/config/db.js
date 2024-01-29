@@ -5,13 +5,18 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  socketTimeoutMS: 30000, // Adjust the value as needed
 });
 
 async function run() {
   try {
     await client.connect();
-    await client.db('admin').command({ ping: 1 });
     console.log('Connected successfully to MongoDB');
+
+    // Optionally, ping the database
+    const database = client.db('UserManagementDB');
+    const pingResult = await database.command({ ping: 1 });
+    console.log('Ping result:', pingResult);
   } catch (error) {
     console.error('Could not connect to MongoDB', error);
   }
