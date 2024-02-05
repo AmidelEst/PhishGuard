@@ -1,27 +1,26 @@
-// popup.js
+// public/popup.js
 document.addEventListener('DOMContentLoaded', function () {
-  // Get buttons and container divs
+  // Elements retrieval
   const mainPage = document.getElementById('mainPage');
-  const signUpPage = document.getElementById('signUpPage');
-  const logInPage = document.getElementById('logInPage');
-  const signUpButton = document.getElementById('signUpButton');
-  const logInButton = document.getElementById('logInButton');
+  const registerPage = document.getElementById('registerPage');
+  const loginPage = document.getElementById('loginPage');
+  const goToRegisterPage = document.getElementById('goToRegisterPage');
+  const goToLoginPage = document.getElementById('goToLoginPage');
 
-  // Event listener for Sign Up button
-  signUpButton.addEventListener('click', function () {
+  // Navigation event listeners
+  goToRegisterPage.addEventListener('click', function () {
     mainPage.classList.add('hidden');
-    signUpPage.classList.remove('hidden');
+    registerPage.classList.remove('hidden');
   });
 
-  // Event listener for Sign In button
-  logInButton.addEventListener('click', function () {
+  goToLoginPage.addEventListener('click', function () {
     mainPage.classList.add('hidden');
-    logInPage.classList.remove('hidden');
+    loginPage.classList.remove('hidden');
   });
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-  const form = document.getElementById('signupForm'); // Corrected the ID here
+  const form = document.getElementById('registerForm'); // Corrected the ID here
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();

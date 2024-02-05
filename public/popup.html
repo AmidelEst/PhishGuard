@@ -1,3 +1,4 @@
+// /public/popup.html
 <!DOCTYPE html>
 <html>
 
@@ -9,16 +10,16 @@
 <body>
   <div id="mainPage" class="container">
     <h1>Anti-Phishing Extension</h1>
-    <button id="signUpButton">Register</button>
-    <button id="logInButton">Log In</button>
+    <button id="goToRegisterPage">Register</button>
+    <button id="goTologinPage">Log In</button>
   </div>
 
   <!-- Sign Up form content here -->
-  <div id="signUpPage" class="container hidden">
+  <div id="registerPage" class="container hidden">
     <div class="bg">
-      <main class="form-signin">
+      <main class="form-Register">
         <h1 class="h3 mb-3">Sign Up</h1>
-        <form id="signupForm">
+        <form id="registerForm">
           <div class="mb-3">
             <label for="name" class="form-label">Name</label>
             <input type="text" class="form-control" id="name" placeholder="Your Name" required>
@@ -53,9 +54,9 @@
 
 
   <!-- Login form content here -->
-  <div id="logInPage" class="container hidden">
+  <div id="loginPage" class="container hidden">
     <div class="bg">
-      <main class="form-signin">
+      <main class="form-login">
         <form id="loginForm">
           <div class="form-floating">
             <label for="floatingInput">Email address</label>
