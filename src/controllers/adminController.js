@@ -1,16 +1,18 @@
-// src/controllers/userController.js
+// src/controllers/adminController.js
 
-// user database
-const User = require('../models/user');
 // express and Router
 const express = require('express');
-const userRouter = express.Router();
+const adminRouter = express.Router();
+
+// admin database
+const Admin = require('../models/admin');
+
 // hashing tools
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 // Route to register a new user
-userRouter.post('/register', async (req, res) => {
+adminRouter.post('/admin/register', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -34,7 +36,7 @@ userRouter.post('/register', async (req, res) => {
 });
 
 // Route to login a user
-userRouter.post('/login', async (req, res) => {
+adminRouter.post('/admin/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -63,4 +65,4 @@ userRouter.post('/login', async (req, res) => {
   }
 });
 
-module.exports = userRouter;
+module.exports = adminRouter;

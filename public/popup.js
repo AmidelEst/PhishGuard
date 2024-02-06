@@ -24,18 +24,16 @@ document.addEventListener('DOMContentLoaded', function () {
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-
-      const name = document.getElementById('name').value; // Changed from 'username' to 'name'
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      fetch('http://localhost:3000/user/create', {
+      fetch('http://localhost:3000/user/register', {
         // Ensure this points to your server's URL
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }), // Ensure these keys match your backend's expected format
+        body: JSON.stringify({ email, password }), // Ensure these keys match your backend's expected format
       })
         .then((response) => response.text())
         .then((data) => {

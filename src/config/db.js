@@ -1,10 +1,8 @@
 // src/config/db.js
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = process.env.MONGO_URI; // It's best practice to use environment variables for sensitive information
+const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   socketTimeoutMS: 30000, // Adjust the value as needed
 });
 
