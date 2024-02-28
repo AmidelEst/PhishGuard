@@ -10,10 +10,10 @@
   <div id="mainPage" class="container">
     <h1>Anti-Phishing Extension</h1>
     <button id="goToRegisterPage">Register</button>
-    <button id="goTologinPage">Log In</button>
+    <button id="goToLoginPage">Log In</button>
   </div>
 
-  <!-- Sign Up form content here -->
+  <!-- Registration form -->
   <div id="registerPage" class="container hidden">
     <div class="bg">
       <main class="form-Register">
@@ -21,12 +21,12 @@
         <form id="registerForm">
           <div class="mb-3">
             <label for="email" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+            <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
           </div>
 
           <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" placeholder="Password" required>
+            <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
           </div>
 
           <div class="mb-3">
@@ -52,13 +52,13 @@
       <main class="form-login">
         <form id="loginForm">
           <div class="form-floating">
-            <label for="floatingInput">Email address</label>
-            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" required>
+            <label for="loginEmail">Email address</label>
+            <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required>
           </div>
           <div class="form-floating">
-            <label for="floatingPassword">Password</label>
+            <label for="loginPassword">Password</label>
             <br>
-            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" required>
+            <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
           </div>
 
           <div class="checkbox mb-3">
@@ -68,7 +68,7 @@
             </div>
 
           </div>
-          <button class="w-100 btn btn-lg" type="submit">Sign in</button>
+          <button class="w-100 btn btn-lg" type="submit">Login</button>
         </form>
       </main>
     </div>
