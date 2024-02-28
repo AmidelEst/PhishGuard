@@ -1,43 +1,69 @@
 // server.js
+
 //requires
 const express = require('express');
-const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
-require('dotenv').config();
-const path = require('path');
-const cors = require('cors');
 const app = express();
+require('dotenv').config();
+const mongoose = require('mongoose');
+const morgan = require('morgan');
+const cors = require('cors');
 const PORT = 3001;
+//----
+
+// Db
+mongoose.connect(process.env.MONGO_URI);
+
+mongoose.connection.on('connected', () => {
+	console.log('MongoDB connected');
+});
+//------
+// Controllers
+const userRoutes = require('./src/routes/user');
+//----
 
 // Basic middleware
 app.use(express.json());
 app.use(express.static('public'));
-app.use(cookieParser());
 app.use(cors());
-
-// DB and routes import
-const { run } = require('./src/config/db');
-const userRoutes = require('./src/controllers/userController.js');
-const adminRoutes = require('./src/controllers/adminController.js');
-
-// Controllers binding
-app.use('/user', userRoutes);
-app.use('/admin', adminRoutes);
-
-//session manger
-const session = require('express-session');
-
+app.use(morgan('dev'));
 app.use(
-	session({
-		secret: 'your_secret_key',
-		resave: false,
-		saveUninitialized: true,
-		cookie: { secure: true, maxAge: 60000 },
+	express.urlencoded({
+		extended: false,
 	})
 );
-mongoose.connect(process.env.MONGO_URI);
-// Connect to MongoDB
-run().catch(console.dir);
+app.use((req, res, next) => {
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header(
+		'Access-Control-Allow-Headers',
+		'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+	);
+	if (req.method === 'OPTIONS') {
+		res.header(
+			'Access-Control-Allow-Methods',
+			'PUT, POST, PATCH, DELETE, GET'
+		);
+		return res.status(200).json({});
+	}
+	next();
+});
+
+// Routes
+app.use('/user', userRoutes);
+
+app.use((req, res, next) => {
+	const error = new Error('Not Found');
+	error.status = 404;
+	next(error);
+});
+
+app.use((error, req, res, next) => {
+	res.status(error.status || 500);
+	res.json({
+		error: {
+			message: error.message,
+		},
+	});
+});
 
 // Central error handling
 app.use((err, req, res, next) => {
