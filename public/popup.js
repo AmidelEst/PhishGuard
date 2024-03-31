@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 });
 
-// implement register
+// Register
 document.addEventListener('DOMContentLoaded', function () {
 	const registerForm = document.getElementById('registerForm'); // Corrected the ID here
 	if (registerForm) {
@@ -42,16 +42,23 @@ document.addEventListener('DOMContentLoaded', function () {
 					password: registerPassword,
 				}), // Ensure these keys match your backend's expected format
 			})
-				.then((response) => response.text())
+				.then((response) => response.json()) // Parse the JSON from the response
 				.then((data) => {
-					console.log('Success:', data);
+					if (data.success) {
+						alert('Success: ' + data.message);
+					} else {
+						// Even if the response is a 4XX, we handle it here due to the response being parsed as JSON
+						throw new Error(data.message);
+					}
 				})
 				.catch((error) => {
-					console.error('Error:', error);
+					// This catches network errors and errors thrown from the previous block
+					alert('Error: ' + error.message);
 				});
 		});
 	} else {
 		console.error('Form element not found!');
+		alert('Form element not found!');
 	}
 });
 
@@ -75,33 +82,36 @@ document.addEventListener('DOMContentLoaded', function () {
 					password: loginPassword,
 				}), // Ensure the object keys match your server's expected fields
 			})
-				.then((response) => response.json()) // Convert the response to JSON
+				.then((response) => {
+					if (!response.ok) {
+						// If the server response is not ok, we throw an error to jump directly to the catch block
+						throw new Error('Network response was not ok');
+					}
+					return response.json(); // We parse the response as JSON
+				})
 				.then((data) => {
-					// Handle response data
-					console.log('Login Successful:', data);
 					if (data.success) {
-						// Perform actions upon successful login, e.g., storing the token, updating UI
-						// Assuming your server responds with a token on successful login
+						alert('Login successful!'); // Display a success message
 						chrome.storage.local.set(
 							{ token: data.token },
 							function () {
 								console.log('Token is saved in Chrome storage');
 							}
 						);
-
-						// Optionally, close the popup or display a success message
+						// Additional actions upon successful login can be performed here
 					} else {
-						// Handle login failures, e.g., display an error message to the user
-						alert('Login failed: ' + data.message);
+						// If the login was not successful, display an error message from the server
+						throw new Error('Login failed: ' + data.message);
 					}
 				})
 				.catch((error) => {
+					// Handles any network error or manual error thrown from the then block
 					console.error('Login Error:', error);
-					alert('Login error, please try again.');
+					alert('Error: ' + error.message);
 				});
 		});
 	} else {
 		console.error('Login form not found!');
+		alert('Login form not found!');
 	}
 });
-

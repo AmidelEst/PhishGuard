@@ -7,7 +7,7 @@ const {
 	userLogin,
 	userRegister,
 	updateUser,
-} = require('../controllers/userController');
+} = require('../controllers/user');
 
 router.post('/register', userRegister);
 router.post('/login', userLogin);

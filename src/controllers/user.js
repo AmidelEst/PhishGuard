@@ -1,4 +1,4 @@
-// src/controllers/userController.js
+// src/controllers/user.js
 
 const User = require('../models/user');
 const express = require('express');
@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 module.exports = {
+	// func 1
 	userRegister: async (req, res) => {
 		try {
 			const { email, password } = req.body;
@@ -31,16 +32,16 @@ module.exports = {
 
 			await newUser.save().then((result) => {
 				console.log(result);
-			});
-
-			res.status(201).send({
-				success: true,
-				message: 'User registered successfully',
+				res.status(201).send({
+					success: true,
+					message: 'User registered successfully',
+				});
 			});
 		} catch (error) {
 			res.status(500).send({ success: false, message: error.message });
 		}
 	},
+	// func 2
 	userLogin: async (req, res) => {
 		try {
 			//deconstruct
