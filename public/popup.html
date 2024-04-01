@@ -1,3 +1,4 @@
+<!--/public/popup.html-->
 <!DOCTYPE html>
 <html>
 
@@ -13,64 +14,38 @@
     <button id="goToLoginPage">Log In</button>
   </div>
 
-  <!-- Registration form -->
   <div id="registerPage" class="container hidden">
     <div class="bg">
-      <main class="form-Register">
+      <form id="registerForm" class="form-register">
         <h1 class="h3 mb-3">Sign Up</h1>
-        <form id="registerForm">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="confirmPassword" class="form-label">Confirm Password</label>
-            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
-          </div>
-
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="1" name="agreeTerms" id="agreeTerms">
-            <label class="form-check-label" for="agreeTerms">I agree to the terms and conditions</label>
-          </div>
-
-          <button class="w-100 btn btn-lg btn-primary" type="submit">Register</button>
-        </form>
-      </main>
+        <label for="registerEmail" class="form-label">Email address</label>
+        <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
+        <label for="registerPassword" class="form-label">Password</label>
+        <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="agreeTerms">
+          <label class="form-check-label" for="agreeTerms">I agree to the terms and conditions</label>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Register</button>
+      </form>
     </div>
   </div>
 
-
-  <!-- Login form content here -->
   <div id="loginPage" class="container hidden">
     <div class="bg">
-      <main class="form-login">
-        <form id="loginForm">
-          <div class="form-floating">
-            <label for="loginEmail">Email address</label>
-            <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required>
-          </div>
-          <div class="form-floating">
-            <label for="loginPassword">Password</label>
-            <br>
-            <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
-          </div>
-
-          <div class="checkbox mb-3">
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" value="1" name="remember_me" id="rememberMeSwitch">
-              <label class="form-check-label" for="rememberMeSwitch"> Remember me</label>
-            </div>
-
-          </div>
-          <button class="w-100 btn btn-lg" type="submit">Login</button>
-        </form>
-      </main>
+      <form id="loginForm" class="form-login">
+        <label for="loginEmail">Email address</label>
+        <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required>
+        <label for="loginPassword">Password</label>
+        <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+        <div class="checkbox mb-3">
+          <input class="form-check-input" type="checkbox" id="rememberMeSwitch">
+          <label class="form-check-label" for="rememberMeSwitch"> Remember me</label>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Login</button>
+      </form>
     </div>
   </div>
   <script src="popup.js"></script>
