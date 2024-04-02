@@ -1,16 +1,23 @@
-require('dotenv').config();
-const express = require('express');
-const { run } = require('./src/config/db');
-const app = express();
+// // content.js
 
-// Connect to MongoDB
-run().catch(console.dir);
+// function formatDOM() {
+// 	const allElements = [...document.querySelectorAll('*')].map((el) => ({
+// 		tagName: el.tagName,
+// 		attributes: Array.from(el.attributes, (attr) => ({
+// 			name: attr.name,
+// 			value: attr.value,
+// 		})),
+// 		textContent: el.textContent.trim(),
+// 	}));
+// 	console.log(allElements); // Example: Log the received data
+// 	return allElements;
+// }
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
+// // Listen for a message from the service worker to capture the DOM
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// 	if (request.action === 'captureDOM') {
+// 		const domContent = document.documentElement.innerHTML; // Capture the DOM
+// 		const formattedDom = formatDOM(); // Convert DOM to a suitable format
+// 		sendResponse({ formattedDom: formattedDom });
+// 	}
+// });
