@@ -8,12 +8,23 @@
 		"declarativeNetRequest",
 		"tabs",
 		"activeTab",
-		"storage"
+		"storage",
+		"tabs",
+		"<all_urls>",
+		"http://yourserver.com/*"
 	],
 	"background": {
 		"service_worker": "service_worker.js"
 	},
 	"host_permissions": ["<all_urls>"],
+	"action": {
+		"default_popup": "public/popup.html",
+		"default_icon": {
+			"16": "/Public/images/cyber-security.png",
+			"48": "/Public/images/cyber-security.png",
+			"128": "/Public/images/128 pic.png"
+		}
+	},
 	"content_security_policy": {
 		"extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
 	},
@@ -32,14 +43,5 @@
 			"js": ["content.js"]
 		}
 	],
-
-	"action": {
-		"default_popup": "public/popup.html",
-		"default_icon": {
-			"16": "/Public/images/cyber-security.png",
-			"48": "/Public/images/cyber-security.png",
-			"128": "/Public/images/128 pic.png"
-		}
-	},
 	"options_page": "options.html"
 }

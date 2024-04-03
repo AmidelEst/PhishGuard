@@ -18,6 +18,7 @@ mongoose.connection.on('connected', () => {
 //------
 // Controllers
 const userControllers = require('./src/controllers/user');
+const urlControllers = require('./src/controllers/url');
 //----
 
 // Basic middleware
@@ -48,6 +49,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/user', userControllers);
+app.use('/', urlControllers);
 
 app.use((req, res, next) => {
 	const error = new Error('Not Found');
