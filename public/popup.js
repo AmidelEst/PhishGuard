@@ -1,13 +1,15 @@
-// public/popup.js
+// /public/popup.js
 document.addEventListener('DOMContentLoaded', function () {
 	// Elements retrieval
-
-	//navigation button
 	const goToRegisterPage = document.getElementById('goToRegisterPage');
 	const goToLoginPage = document.getElementById('goToLoginPage');
-	// form retrieval
+	const mainPage = document.getElementById('mainPage'); // Ensure mainPage is defined
 	const registerPage = document.getElementById('registerPage');
 	const loginPage = document.getElementById('loginPage');
+	const registerForm = document.getElementById('registerForm');
+	const loginForm = document.getElementById('loginForm');
+	const apiUrl = 'http://localhost:3001'; // Placeholder, replace with environment-specific URL
+
 	chrome.runtime.sendMessage({ event: 'onStart' });
 
 	// Navigation event listeners
@@ -20,88 +22,94 @@ document.addEventListener('DOMContentLoaded', function () {
 		mainPage.classList.add('hidden');
 		loginPage.classList.remove('hidden');
 	});
-});
+	const goToMainPage = () => {
+		registerPage.classList.add('hidden');
+		mainPage.classList.remove('hidden');
+	};
 
-// implement register
-document.addEventListener('DOMContentLoaded', function () {
-	const registerForm = document.getElementById('registerForm'); // Corrected the ID here
+	// 1) Register event listener
 	if (registerForm) {
-		registerForm.addEventListener('submit', function (e) {
+		registerForm.addEventListener('submit', async (e) => {
 			e.preventDefault();
 			const registerEmail =
 				document.getElementById('registerEmail').value;
 			const registerPassword =
 				document.getElementById('registerPassword').value;
-			fetch('http://localhost:3001/user/register', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					email: registerEmail,
-					password: registerPassword,
-				}), // Ensure these keys match your backend's expected format
-			})
-				.then((response) => response.text())
-				.then((data) => {
-					console.log('Success:', data);
-				})
-				.catch((error) => {
-					console.error('Error:', error);
+			const confirmPassword =
+				document.getElementById('confirmPassword').value;
+
+			if (registerPassword !== confirmPassword) {
+				alert('Passwords do not match.');
+				return;
+			}
+			try {
+				const response = await fetch(`${apiUrl}/user/register`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						email: registerEmail,
+						password: registerPassword,
+					}),
 				});
+				const data = await response.json();
+				if (data.success) {
+					alert('Success: ' + data.message);
+					goToMainPage();
+				} else {
+					alert('Error: ' + error.message);
+				}
+			} catch (error) {
+				alert('Error: ' + error.message);
+			}
 		});
 	} else {
-		console.error('Form element not found!');
+		console.error('Register form element not found!');
 	}
-});
 
-// implement login
-document.addEventListener('DOMContentLoaded', function () {
-	const loginForm = document.getElementById('loginForm'); // Corrected the ID here
+	// 2) Login event listener
 	if (loginForm) {
-		loginForm.addEventListener('submit', function (e) {
+		loginForm.addEventListener('submit', async (e) => {
 			e.preventDefault();
 			const loginEmail = document.getElementById('loginEmail').value;
 			const loginPassword =
 				document.getElementById('loginPassword').value;
-			console.log(loginEmail, loginPassword);
-			fetch('http://localhost:3001/user/login', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					email: loginEmail,
-					password: loginPassword,
-				}), // Ensure the object keys match your server's expected fields
-			})
-				.then((response) => response.json()) // Convert the response to JSON
-				.then((data) => {
-					// Handle response data
-					console.log('Login Successful:', data);
-					if (data.success) {
-						// Perform actions upon successful login, e.g., storing the token, updating UI
-						// Assuming your server responds with a token on successful login
-						chrome.storage.local.set(
-							{ token: data.token },
-							function () {
-								console.log('Token is saved in Chrome storage');
-							}
-						);
 
-						// Optionally, close the popup or display a success message
-					} else {
-						// Handle login failures, e.g., display an error message to the user
-						alert('Login failed: ' + data.message);
-					}
-				})
-				.catch((error) => {
-					console.error('Login Error:', error);
-					alert('Login error, please try again.');
+			try {
+				const response = await fetch(`${apiUrl}/user/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						email: loginEmail,
+						password: loginPassword,
+					}),
 				});
+
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
+
+				const data = await response.json();
+				if (data.success) {
+					alert('Login successful!');
+					console.log('Setting token in storage');
+					chrome.storage.local.set({ token: data.token }, () => {
+						console.log('Token is saved in Chrome storage');
+						if (chrome.runtime.lastError) {
+							console.error(
+								'Error setting token:',
+								chrome.runtime.lastError
+							);
+						}
+					});
+				} else {
+					alert('Error: ' + error.message);
+				}
+			} catch (error) {
+				console.error('Login Error:', error);
+				alert('Error: ' + error.message);
+			}
 		});
 	} else {
-		console.error('Login form not found!');
+		console.error('Login form element not found!');
 	}
 });
-
