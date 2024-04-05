@@ -1,86 +1,87 @@
 // /public/popup.js
-document.addEventListener('DOMContentLoaded', function () {
-	// Elements retrieval
-	const goToRegisterPage = document.getElementById('goToRegisterPage');
-	const goToLoginPage = document.getElementById('goToLoginPage');
-	const mainPage = document.getElementById('mainPage'); // Ensure mainPage is defined
-	const registerPage = document.getElementById('registerPage');
-	const loginPage = document.getElementById('loginPage');
-	const registerForm = document.getElementById('registerForm');
-	const loginForm = document.getElementById('loginForm');
-	const apiUrl = 'http://localhost:3001'; // Placeholder, replace with environment-specific URL
+document.addEventListener('DOMContentLoaded', () => {
+	// Cache DOM elements for efficiency
+	const elements = {
+		goToRegisterPage: document.getElementById('goToRegisterPage'),
+		goToLoginPage: document.getElementById('goToLoginPage'),
+		mainPage: document.getElementById('mainPage'),
+		registerPage: document.getElementById('registerPage'),
+		loginPage: document.getElementById('loginPage'),
+		registerForm: document.getElementById('registerForm'),
+		loginForm: document.getElementById('loginForm'),
+		apiUrl: 'http://localhost:3001', // Use HTTPS
+	};
 
 	chrome.runtime.sendMessage({ event: 'onStart' });
 
-	// Navigation event listeners
-	goToRegisterPage.addEventListener('click', function () {
-		mainPage.classList.add('hidden');
-		registerPage.classList.remove('hidden');
-	});
-
-	goToLoginPage.addEventListener('click', function () {
-		mainPage.classList.add('hidden');
-		loginPage.classList.remove('hidden');
-	});
-	const goToMainPage = () => {
-		registerPage.classList.add('hidden');
-		mainPage.classList.remove('hidden');
+	// Simplify navigation with a reusable function
+	const togglePageVisibility = (hidePage, showPage) => {
+		hidePage.classList.add('hidden');
+		showPage.classList.remove('hidden');
 	};
 
-	// 1) Register event listener
-	if (registerForm) {
-		registerForm.addEventListener('submit', async (e) => {
-			e.preventDefault();
-			const registerEmail =
-				document.getElementById('registerEmail').value;
-			const registerPassword =
-				document.getElementById('registerPassword').value;
-			const confirmPassword =
-				document.getElementById('confirmPassword').value;
+	// Navigation event listeners
+	elements.goToRegisterPage.addEventListener('click', () =>
+		togglePageVisibility(elements.mainPage, elements.registerPage)
+	);
+	elements.goToLoginPage.addEventListener('click', () =>
+		togglePageVisibility(elements.mainPage, elements.loginPage)
+	);
 
-			if (registerPassword !== confirmPassword) {
+	// Register event listener
+	if (elements.registerForm) {
+		elements.registerForm.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const { registerEmail, registerPassword, confirmPassword } =
+				e.target.elements;
+
+			if (registerPassword.value !== confirmPassword.value) {
 				alert('Passwords do not match.');
 				return;
 			}
-			try {
-				const response = await fetch(`${apiUrl}/user/register`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						email: registerEmail,
-						password: registerPassword,
-					}),
-				});
-				const data = await response.json();
-				if (data.success) {
-					alert('Success: ' + data.message);
-					goToMainPage();
-				} else {
-					throw new Error(data.message);
+
+			// Send message to background script
+			chrome.runtime.sendMessage(
+				{
+					contentScriptQuery: 'fetchUrl',
+					url: `${elements.apiUrl}/user/register`,
+					data: {
+						email: registerEmail.value,
+						password: registerPassword.value,
+					},
+				},
+				(response) => {
+					// Handle the response from the background script
+					if (response.success) {
+						alert('Success: ' + response.message);
+						togglePageVisibility(
+							elements.registerPage,
+							elements.mainPage
+						);
+					} else {
+						// Assuming the background script sends back an error in a predictable format
+						alert(
+							'Error: ' + (response.message || 'Unknown error')
+						);
+					}
 				}
-			} catch (error) {
-				alert('Error: ' + error.message);
-			}
+			);
 		});
-	} else {
-		console.error('Register form element not found!');
 	}
 
-	// 2) Login event listener
-	if (loginForm) {
-		loginForm.addEventListener('submit', async (e) => {
+	// Login event listener
+	if (elements.loginForm) {
+		elements.loginForm.addEventListener('submit', async (e) => {
 			e.preventDefault();
-			const loginEmail = document.getElementById('loginEmail').value;
-			const loginPassword =
-				document.getElementById('loginPassword').value;
+			const { loginEmail, loginPassword } = e.target.elements;
 
 			try {
-				const response = await fetch(`${apiUrl}/user/login`, {
+				const response = await fetch(`${elements.apiUrl}/user/login`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
-						email: loginEmail,
-						password: loginPassword,
+						email: loginEmail.value,
+						password: loginPassword.value,
 					}),
 				});
 
@@ -91,9 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				const data = await response.json();
 				if (data.success) {
 					alert('Login successful!');
-					console.log('Setting token in storage');
 					chrome.storage.local.set({ token: data.token }, () => {
-						console.log('Token is saved in Chrome storage');
 						if (chrome.runtime.lastError) {
 							console.error(
 								'Error setting token:',

@@ -5,13 +5,8 @@
 	"description": "A Chrome extension to protect users from phishing attacks.",
 	"permissions": [
 		"webRequest",
-		"declarativeNetRequest",
-		"tabs",
-		"activeTab",
-		"storage",
-		"tabs",
-		"<all_urls>",
-		"http://yourserver.com/*"
+		"http://localhost:3001/*",
+		"https://localhost:3001/*"
 	],
 	"background": {
 		"service_worker": "service_worker.js"
@@ -25,18 +20,7 @@
 			"128": "/Public/images/128 pic.png"
 		}
 	},
-	"content_security_policy": {
-		"extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
-	},
-	"declarative_net_request": {
-		"rule_resources": [
-			{
-				"id": "ruleset1",
-				"enabled": true,
-				"path": "rules.json"
-			}
-		]
-	},
+
 	"content_scripts": [
 		{
 			"matches": ["<all_urls>"],

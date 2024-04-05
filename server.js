@@ -1,36 +1,31 @@
-// server.js
-
-//requires
 const express = require('express');
 const app = express();
 require('dotenv').config();
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
-const PORT = 3001;
-//----
 
-// Db
-mongoose.connect(process.env.MONGO_URI);
-mongoose.connection.on('connected', () => {
-	console.log('MongoDB connected');
-});
-//------
+// Use environment variables for PORT with a default
+const PORT = process.env.PORT || 3001;
+
+// MongoDB Connection
+mongoose
+	.connect(process.env.MONGO_URI)
+	.then(() => console.log('MongoDB connected'))
+	.catch((err) => console.error('MongoDB connection error:', err)); // Improved error handling
+
 // Controllers
 const userControllers = require('./src/controllers/user');
 const urlControllers = require('./src/controllers/url');
-//----
 
-// Basic middleware
+// Middleware
 app.use(express.json());
 app.use(express.static('public'));
 app.use(cors());
 app.use(morgan('dev'));
-app.use(
-	express.urlencoded({
-		extended: false,
-	})
-);
+app.use(express.urlencoded({ extended: false }));
+
+// CORS and Security Headers
 app.use((req, res, next) => {
 	res.header('Access-Control-Allow-Origin', '*');
 	res.header(
@@ -51,6 +46,7 @@ app.use((req, res, next) => {
 app.use('/user', userControllers);
 app.use('/', urlControllers);
 
+// Error Middleware
 app.use((req, res, next) => {
 	const error = new Error('Not Found');
 	error.status = 404;
@@ -58,18 +54,11 @@ app.use((req, res, next) => {
 });
 
 app.use((error, req, res, next) => {
-	res.status(error.status || 500);
-	res.json({
+	res.status(error.status || 500).json({
 		error: {
 			message: error.message,
 		},
 	});
-});
-
-// Central error handling
-app.use((err, req, res, next) => {
-	console.error(err.stack);
-	res.status(500).send('Something broke!');
 });
 
 // Server listening on port
