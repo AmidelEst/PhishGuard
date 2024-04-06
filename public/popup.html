@@ -4,74 +4,81 @@
 <head>
   <title>Anti-Phishing Extension</title>
   <link rel="stylesheet" type="text/css" href="popup.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+
+
 </head>
 
 <body>
   <div id="mainPage" class="container">
-    <h1>Anti-Phishing Extension</h1>
-    <button id="goToRegisterPage">Register</button>
-    <button id="goToLoginPage">Log In</button>
+    <header>Anti-Phishing Extension</header>
+    <button id="goToRegisterPage" class="button">Register</button>
+    <button id="goToLoginPage" class="button">Log In</button>
   </div>
 
-  <!-- Registration form -->
   <div id="registerPage" class="container hidden">
-    <div class="bg">
-      <main class="form-Register">
-        <h1 class="h3 mb-3">Sign Up</h1>
-        <form id="registerForm">
-          <div class="mb-3">
-            <label for="email" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="confirmPassword" class="form-label">Confirm Password</label>
-            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
-          </div>
-
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="1" name="agreeTerms" id="agreeTerms">
-            <label class="form-check-label" for="agreeTerms">I agree to the terms and conditions</label>
-          </div>
-
-          <button class="w-100 btn btn-lg btn-primary" type="submit">Register</button>
-        </form>
-      </main>
-    </div>
+    <main class="form-Register">
+      <h1>Sign Up</h1>
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="registerEmail" class="field">Email address</label><br />
+          <input type="email" class="input-field" id="registerEmail" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="registerPassword" class="field">Password</label><br />
+          <input type="password" class="input-field" id="registerPassword" placeholder="Password" required>
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword" class="field">Confirm Password</label><br />
+          <input type="password" class="input-field" id="confirmPassword" placeholder="Confirm Password" required>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="agreeTerms">
+          <label for="agreeTerms" class="form-check-label">I agree to the terms and conditions</label>
+        </div>
+        <button type="submit" class="button">Register</button>
+      </form>
+    </main>
   </div>
 
-
-  <!-- Login form content here -->
   <div id="loginPage" class="container hidden">
-    <div class="bg">
-      <main class="form-login">
-        <form id="loginForm">
-          <div class="form-floating">
-            <label for="loginEmail">Email address</label>
-            <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required>
+    <main class="form-login">
+      <h1>Log-in</h1>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail" class="field">Email address</label><br />
+          <input type="email" class="input-field" id="loginEmail" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword" class="field">Password</label><br />
+          <input type="password" class="input-field" id="loginPassword" placeholder="Password" required>
+        </div>
+        <div class="checkbox form-group">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="rememberMeSwitch">
+            <label for="rememberMeSwitch" class="form-check-label ">Remember me</label>
           </div>
-          <div class="form-floating">
-            <label for="loginPassword">Password</label>
-            <br>
-            <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
-          </div>
+        </div>
+        <button type="submit" class="button">Login</button>
+      </form>
+    </main>
+  </div>
 
-          <div class="checkbox mb-3">
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" value="1" name="remember_me" id="rememberMeSwitch">
-              <label class="form-check-label" for="rememberMeSwitch"> Remember me</label>
-            </div>
+  <div id="sendUrlPage" class="container hidden">
+    <button id="logOut" type="button" class="btn1 btn-default btn-sm">
+      <span class="glyphicon glyphicon-log-out"></span> Log out
+    </button>
 
-          </div>
-          <button class="w-100 btn btn-lg" type="submit">Login</button>
-        </form>
-      </main>
-    </div>
+    <main class="form-url">
+      <h1>send Url</h1>
+      <form id="sendUrl">
+        <label for="url">Enter an https:// URL:</label>
+        <input type="url" name="url" id="url" placeholder="https://example.com" pattern="https://.*" size="30"
+          required /><br />
+        <button type="submit" class="button">is Safe?</button>
+      </form>
+    </main>
   </div>
   <script src="popup.js"></script>
 </body>

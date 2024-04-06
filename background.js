@@ -1,40 +1,122 @@
-chrome.runtime.onInstalled.addListener(() => {
-    console.log('Extension installed');
-    // Initialize extension state, if necessary
+let apiUrl = 'http://localhost:3001'; // Ensure this points to your actual API
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log(request);
+
+	// Use the event property to identify the request type
+	if (request.event === 'onStart') {
+		checkAuthToken(sendResponse);
+		return true; // Necessary for asynchronous sendResponse
+	}
+
+	if (request.message === 'register') {
+		handleRegistration(request.payload)
+			.then(sendResponse)
+			.catch((err) => {
+				console.error(err);
+				sendResponse('fail');
+			});
+		return true; // Keep the message channel open for the asynchronous response
+	}
+
+	if (request.message === 'login') {
+		handleLogin(request.payload)
+			.then(sendResponse)
+			.catch((error) => {
+				console.error(error);
+				sendResponse({ success: false, message: error.message });
+			});
+		return true;
+	}
+
+	if (request.message === 'logOut') {
+		handleLogOut(sendResponse);
+		return true;
+	}
+
+	// Default response for unhandled messages
+	sendResponse({ success: false, message: 'Unhandled request type' });
+	return false; // Synchronous response, no further action required
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.event === 'login') {
-        // Handle login
-        // Assuming message contains {token: "USER_TOKEN"}
-        chrome.storage.local.set({token: message.token}, function() {
-            console.log('User token saved');
-            // You can perform additional actions upon successful login
-        });
-    } else if (message.event === 'logout') {
-        // Handle logout
-        chrome.storage.local.remove('token', function() {
-            console.log('User logged out');
-            // Perform cleanup or reset state as necessary
-        });
-    }
-    return true; // Indicate that we're asynchronously handling the message
-});
-
-// Example: Perform a background task
-function checkForUpdates() {
-    chrome.storage.local.get(['token'], function(result) {
-        if (result.token) {
-            console.log('Token found:', result.token);
-            // Use the token to perform authenticated actions, e.g., fetch data from a server
-            // fetch('https://yourserver.com/api/check', {headers: {'Authorization': `Bearer ${result.token}`}})
-            //     .then(response => response.json())
-            //     .then(data => console.log(data));
-        } else {
-            console.log('No token found, user not logged in.');
-        }
-    });
+function checkAuthToken(sendResponse) {
+	chrome.storage.local.get('authToken', function (result) {
+		if (result.authToken) {
+			sendResponse({ success: true, message: 'Token found' });
+		} else {
+			sendResponse({ success: false, message: 'No token found' });
+		}
+	});
 }
 
-// Call `checkForUpdates` periodically, adjust interval as needed
-setInterval(checkForUpdates, 60000); // 60 seconds as an example
+function handleRegistration(user_info) {
+	return fetch(`${apiUrl}/user/register`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(user_info),
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			if (!data.success) {
+				throw new Error(data.message);
+			}
+			return { success: true, message: 'Registration successful' };
+		})
+		.catch((error) => {
+			console.error('Registration Error:', error.message);
+			return { success: false, message: error.message };
+		});
+}
+
+function handleLogin(userCredentials) {
+	return fetch(`${apiUrl}/user/login`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(userCredentials),
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			if (!data.success) {
+				throw new Error(data.message);
+			}
+			return new Promise((resolve, reject) => {
+				chrome.storage.local.set(
+					{
+						userStatus: 'loggedIn',
+						authToken: data.token,
+					},
+					() => {
+						if (chrome.runtime.lastError) {
+							reject(new Error(chrome.runtime.lastError));
+						} else {
+							user_signed_in = true;
+							resolve({
+								success: true,
+								message: 'Login successful',
+							});
+						}
+					}
+				);
+			});
+		})
+		.catch((error) => {
+			console.error('Login Error:', error.message);
+			return { success: false, message: error.message };
+		});
+}
+
+function handleLogOut(sendResponse) {
+	chrome.storage.local.remove('authToken', () => {
+		if (chrome.runtime.lastError) {
+			console.error(
+				'Error clearing auth token:',
+				chrome.runtime.lastError
+			);
+			sendResponse({ success: false, message: chrome.runtime.lastError });
+		} else {
+			console.log('Successfully logged out.');
+			user_signed_in = false;
+			sendResponse({ success: true, message: 'Logged out successfully' });
+		}
+	});
+}

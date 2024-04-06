@@ -1,4 +1,4 @@
-// src/controllers/userController.js
+// src/controllers/user.js
 
 // user database
 const userDB = require('../models/users');

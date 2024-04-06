@@ -17,7 +17,7 @@
 		"default_popup": "public/popup.html",
 		"default_icon": {
 			"16": "/Public/images/cyber-security.png",
-			"48": "/Public/images/cyber-security.png",
+			"32": "/Public/images/cyber-security.png",
 			"128": "/Public/images/128 pic.png"
 		}
 	},

@@ -15,10 +15,8 @@ app.use(express.static('public'));
 app.use(cookieParser());
 app.use(cors());
 
-// DB and routes import
-const { run } = require('./src/config/db');
-const userRoutes = require('./src/controllers/userController.js');
-const adminRoutes = require('./src/controllers/adminController.js');
+const userRoutes = require('./src/controllers/user.js');
+const adminRoutes = require('./src/controllers/admin.js');
 
 // Controllers binding
 app.use('/user', userRoutes);
@@ -37,7 +35,6 @@ app.use(
 );
 mongoose.connect(process.env.MONGO_URI);
 // Connect to MongoDB
-run().catch(console.dir);
 
 // Central error handling
 app.use((err, req, res, next) => {
