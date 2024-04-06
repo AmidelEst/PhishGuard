@@ -1,92 +1,111 @@
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-  }
-  
-.container {
-    width: 600px;
-    height: 400px;
-    background-image: url('images/128 pic.png');
-    background-size: cover;
-    background-position: center;
-    padding: 20px;
-    box-sizing: border-box;
-    overflow: auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(11, 117, 255, 0.865);
-    text-align: left;
-    border-radius: 4px;
-  }
-  .container h1{
-    color: rgb(255, 255, 29);
-  }
-  button {
-    background-color: aliceblue;
-    color: black;
-    padding: 10px;
-    margin-bottom: 10px;
-  }
+/* Google Fonts - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-  /* popup.css */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Poppins', sans-serif;
+}
 .hidden {
-  display: none;
+	display: none;
 }
-
-.container h2 {
-  color: aliceblue;
+body {
+	width: 400px;
+	height: 400px;
+	display: flex;
+	align-items: center;
 }
-
-form {
-  display: flex;
-  flex-direction: column;
-  align-items: left;
-  font-size: large;
-  width: 100%; /* Form takes full width of its container */
+.container {
+	width: 100%;
+	height: 100%;
+	background-image: url('images/128 pic.png');
+	background-size: cover;
+	background-position: center;
 }
-
 form label {
-  color:  rgb(255, 240, 27);;
+	font-size: medium;
+	color: #e8eb15;
+	font-weight: bold;
 }
 
-form input {
-  width: 80%; /* Adjust the width of the input fields */
-  margin-bottom: 10px;
-  padding: 8px;
-  box-sizing: border-box;
+.container header {
+	font-size: larger;
+	font-weight: 600;
+	color: #e8eb15;
+}
+main h1 {
+	color: #e8eb15;
+}
+form .input-field {
+	position: relative;
+	height: fit-content;
+	width: 75%;
+}
+.checkbox {
+	margin-left: 50px;
+}
+.input-field input {
+	height: 100%;
+	width: fit-content;
+	outline: none;
+	border: none;
+	border-radius: 8px;
+	padding: 0 15px;
+	border: 1px solid #d1d1d1;
+}
+.invalid input {
+	border-color: #d93025;
+}
+.input-field .show-hide {
+	position: absolute;
+	right: 13px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 18px;
+	color: #919191;
+	cursor: pointer;
+	padding: 3px;
+}
+.field .error {
+	display: flex;
+	align-items: center;
+	margin-top: 6px;
+	color: #d93025;
+	font-size: 13px;
+	display: none;
+}
+.invalid .error {
+	display: flex;
+}
+.error .error-icon {
+	margin-right: 6px;
+	font-size: 15px;
+}
+.create-password .error {
+	align-items: flex-start;
+}
+.create-password .error-icon {
+	margin-top: 4px;
+}
+.button {
+	transition-duration: 0.4s;
+}
+.button {
+	background-color: transparent;
+	color: #e8eb15;
+	border-color: #008cba;
+	font-size: 25px;
+	margin-top: 10px;
 }
 
-button {
-  background-color: aliceblue;
-  color: black;
-  padding: 10px;
-  margin-top: 10px;
-  cursor: pointer;
+.button:hover {
+	background-color: #008cba; /* Green */
+	color: white;
 }
-
-button:hover {
-  background-color: #0056b3; /* Change color on hover if desired */
-}
-
-
-.form-control {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-/* Adjustments for the checkbox and label */
-.form-check-input {
-  display: inline;
-  text-align: left; /* Aligns content to the left */
-}
-
-.form-check-input {
-  margin-left: 0; /* Align checkbox to the very start of the line */
-  width: 13px;
-  height: 13px;
-}
-
-.form-check-label {
-  margin: 0; /* Remove any default margin */
-  order: 2; /* Ensure label is after checkbox when using flex */
+.btn1 {
+	position: absolute;
+	top: 8px;
+	right: 16px;
+	font-size: 18px;
 }

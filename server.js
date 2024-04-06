@@ -25,6 +25,7 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: false }));
 
+<<<<<<< HEAD
 // CORS and Security Headers
 app.use((req, res, next) => {
 	res.header('Access-Control-Allow-Origin', '*');
@@ -41,6 +42,10 @@ app.use((req, res, next) => {
 	}
 	next();
 });
+=======
+const userRoutes = require('./src/controllers/user.js');
+const adminRoutes = require('./src/controllers/admin.js');
+>>>>>>> check1
 
 // Routes
 app.use('/user', userControllers);
@@ -53,12 +58,30 @@ app.use((req, res, next) => {
 	next(error);
 });
 
+<<<<<<< HEAD
 app.use((error, req, res, next) => {
 	res.status(error.status || 500).json({
 		error: {
 			message: error.message,
 		},
 	});
+=======
+app.use(
+	session({
+		secret: 'your_secret_key',
+		resave: false,
+		saveUninitialized: true,
+		cookie: { secure: true, maxAge: 60000 },
+	})
+);
+mongoose.connect(process.env.MONGO_URI);
+// Connect to MongoDB
+
+// Central error handling
+app.use((err, req, res, next) => {
+	console.error(err.stack);
+	res.status(500).send('Something broke!');
+>>>>>>> check1
 });
 
 // Server listening on port
