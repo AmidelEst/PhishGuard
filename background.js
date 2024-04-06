@@ -62,7 +62,6 @@ function handleRegistration(user_info) {
 			return { success: true, message: 'Registration successful' };
 		})
 		.catch((error) => {
-			console.error('Registration Error:', error.message);
 			return { success: false, message: error.message };
 		});
 }
@@ -99,7 +98,6 @@ function handleLogin(userCredentials) {
 			});
 		})
 		.catch((error) => {
-			console.error('Login Error:', error.message);
 			return { success: false, message: error.message };
 		});
 }

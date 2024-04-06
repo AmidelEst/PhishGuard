@@ -19,12 +19,22 @@ mongoose
 const userControllers = require('./src/controllers/user');
 const urlControllers = require('./src/controllers/url');
 
+// Session configuration
+app.use(
+	session({
+		secret: process.env.SESSION_SECRET, // Use an environmental variable for the secret
+		resave: false,
+		saveUninitialized: true,
+		cookie: { secure: process.env.NODE_ENV === 'production' }, // Adjust based on environment
+	})
+);
+
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 app.use(cors());
 app.use(morgan('dev'));
-app.use(express.urlencoded({ extended: false }));
 
 // CORS and Security Headers
 app.use((req, res, next) => {
@@ -47,27 +57,21 @@ app.use((req, res, next) => {
 app.use('/user', userControllers);
 app.use('/', urlControllers);
 
-// Error Middleware
+// Error Handling Middleware for Not Found
 app.use((req, res, next) => {
 	const error = new Error('Not Found');
 	error.status = 404;
 	next(error);
 });
 
-// Session configuration
-app.use(
-	session({
-		secret: 'your secret key', // Replace 'your secret key' with a real secret key
-		resave: false,
-		saveUninitialized: true,
-		cookie: { secure: true }, // Secure is recommended for HTTPS. Set to false if using HTTP.
-	})
-);
-
-// Central error handling
+// Central Error Handling
 app.use((err, req, res, next) => {
-	console.error(err.stack);
-	res.status(500).send('Something broke!');
+	res.status(err.status || 500);
+	res.json({
+		error: {
+			message: err.message || 'Internal Server Error',
+		},
+	});
 });
 
 // Server listening on port
