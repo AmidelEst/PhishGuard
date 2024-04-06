@@ -12,12 +12,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	const logOut = document.getElementById('logOut');
 	const apiUrl = 'http://localhost:3001'; // Placeholder, replace with environment-specific URL
 
-	// Simplify navigation with a reusable function
-	const togglePageVisibility = (hidePage, showPage) => {
-		hidePage.classList.add('hidden');
-		showPage.classList.remove('hidden');
-	};
-
 	// Navigation event listeners
 
 	//mainPage -> Registeration
@@ -110,8 +104,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 			);
 		});
-	} else {
-		console.error('Login form element not found!');
 	}
 
 	logOut.addEventListener('click', () => {

@@ -2,7 +2,6 @@ let apiUrl = 'http://localhost:3001'; // Ensure this points to your actual API
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log(request);
-
 	// Use the event property to identify the request type
 	if (request.event === 'onStart') {
 		checkAuthToken(sendResponse);

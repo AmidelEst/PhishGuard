@@ -6,15 +6,10 @@ const userRouter = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-// Assuming you have a middleware to authenticate token
-// You'll need to implement or include your authenticateToken middleware
 const authenticateToken = (req, res, next) => {
-	// Authentication logic here...
-	// Example:
 	const authHeader = req.headers['authorization'];
 	const token = authHeader && authHeader.split(' ')[1];
 	if (token == null) return res.sendStatus(401);
-
 	jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
 		if (err) return res.sendStatus(403);
 		req.user = user;
@@ -51,11 +46,11 @@ userRouter.post('/register', async (req, res) => {
 userRouter.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
-		const user = await User.findOne({ email });
+		const user = await User.findOne({ email: email.trim().toLowerCase() });
 		if (!user) {
 			return res.status(401).send({
 				success: false,
-				message: 'Authentication failed. User not found.',
+				message: 'User not found.',
 			});
 		}
 
@@ -63,7 +58,7 @@ userRouter.post('/login', async (req, res) => {
 		if (!isMatch) {
 			return res.status(401).send({
 				success: false,
-				message: 'Authentication failed. Wrong password.',
+				message: 'Wrong password.',
 			});
 		}
 

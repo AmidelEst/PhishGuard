@@ -2,17 +2,11 @@
 	"manifest_version": 3,
 	"name": "Phishing Detector",
 	"version": "1.0",
-	"permissions": ["webRequest", "tabs", "storage"],
+	"permissions": ["storage"],
 	"description": "A Chrome extension to protect users from phishing attacks.",
 	"background": {
 		"service_worker": "background.js"
 	},
-	"content_scripts": [
-		{
-			"matches": ["<all_urls>"],
-			"js": ["content.js"]
-		}
-	],
 	"action": {
 		"default_popup": "public/popup.html",
 		"default_icon": {
