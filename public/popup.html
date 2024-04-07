@@ -6,18 +6,16 @@
   <title>Anti-Phishing Extension</title>
   <link rel="stylesheet" type="text/css" href="popup.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-
-
-
 </head>
 
 <body>
+  <!-- mainPage section-->
   <div id="mainPage" class="container">
     <header>Anti-Phishing Extension</header>
-    <button id="goToRegisterPage" class="button">Register</button>
-    <button id="goToLoginPage" class="button">Log In</button>
+    <button id="goToRegister" class="button">Register</button>
+    <button id="goToLogin" class="button">Log In</button>
   </div>
-
+  <!-- Registration section-->
   <div id="registerPage" class="container hidden">
     <main class="form-Register">
       <h1>Sign Up</h1>
@@ -43,6 +41,7 @@
     </main>
   </div>
 
+  <!-- Log-In section-->
   <div id="loginPage" class="container hidden">
     <main class="form-login">
       <h1>Log-in</h1>
@@ -66,11 +65,13 @@
     </main>
   </div>
 
+  <!-- Send URL section-->
   <div id="sendUrlPage" class="container hidden">
+    <!-- Log-out section-->
     <button id="logOut" type="button" class="btn1 btn-default btn-sm">
       <span class="glyphicon glyphicon-log-out"></span> Log out
     </button>
-
+    <!-- Send URL FORM-->
     <main class="form-url">
       <h1>send Url</h1>
       <form id="sendUrl">
@@ -81,6 +82,7 @@
       </form>
     </main>
   </div>
+
   <script src="popup.js"></script>
 </body>
 

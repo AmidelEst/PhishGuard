@@ -1,41 +1,56 @@
 // /public/popup.js
 document.addEventListener('DOMContentLoaded', function () {
 	// Elements retrieval
+
+	//------------4 views of the app -----------------//
 	const mainPage = document.getElementById('mainPage');
-	const goToRegisterPage = document.getElementById('goToRegisterPage');
-	const goToLoginPage = document.getElementById('goToLoginPage');
 	const registerPage = document.getElementById('registerPage');
 	const loginPage = document.getElementById('loginPage');
-	const registerForm = document.getElementById('registerForm');
-	const loginForm = document.getElementById('loginForm');
 	const sendUrlPage = document.getElementById('sendUrlPage');
+	//------------------------------------------------//
+
+	//--------------listeners to buttons in main page--------------//
+	const goToRegister = document.getElementById('goToRegister');
+	const goToLogin = document.getElementById('goToLogin');
+	//---------------------------------------------------//
+
+	//--------------listeners to *FORM's* submit button--------------//
+	const registerForm = document.getElementById('registerForm'); //listens to *register* submit button
+	const loginForm = document.getElementById('loginForm'); //listens to *register* submit button
+	//---------------------------------------------------//
+
 	const logOut = document.getElementById('logOut');
-	const apiUrl = 'http://localhost:3001'; // Placeholder, replace with environment-specific URL
+	const apiUrl = 'http://localhost:3001';
 
-	// Navigation event listeners
-
-	//mainPage -> Registeration
-	goToRegisterPage.addEventListener('click', function () {
+	//--------------assign functionalities to the 2 buttons on of main page-------------//
+	//mainPage -> Registration
+	goToRegister.addEventListener('click', function () {
 		mainPage.classList.add('hidden');
 		registerPage.classList.remove('hidden');
 	});
-	//mainPage -> Registeration
+
+	//mainPage -> LoginPage
+	goToLogin.addEventListener('click', function () {
+		mainPage.classList.add('hidden');
+		loginPage.classList.remove('hidden');
+	});
+	//-----------------------------------------------//
+	//mainPage -> Registration
 	const goToMainPage = () => {
 		registerPage.classList.add('hidden');
 		sendUrlPage.classList.add('hidden');
 		mainPage.classList.remove('hidden');
 	};
-	goToLoginPage.addEventListener('click', function () {
-		mainPage.classList.add('hidden');
-		loginPage.classList.remove('hidden');
-	});
-
+	//any  -> Send Url Page
 	const goToSendUrlPage = () => {
 		loginPage.classList.add('hidden');
 		mainPage.classList.add('hidden');
 		sendUrlPage.classList.remove('hidden');
 	};
-
+	//-----------------!end of HTML Basic binding!-------------------------------//
+	
+	
+	// 0) clicking on our extension icon
 	chrome.runtime.sendMessage({ event: 'onStart' }, function (response) {
 		if (response && response.success) {
 			goToSendUrlPage();
@@ -106,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
+	// 3) logOut event listener
 	logOut.addEventListener('click', () => {
 		chrome.runtime.sendMessage({ message: 'logOut' }, function (response) {
 			if (response && response.success) {

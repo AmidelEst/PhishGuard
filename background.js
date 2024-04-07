@@ -87,7 +87,6 @@ function handleLogin(userCredentials) {
 						if (chrome.runtime.lastError) {
 							reject(new Error(chrome.runtime.lastError));
 						} else {
-							user_signed_in = true;
 							resolve({
 								success: true,
 								message: 'Login successful',
