@@ -65,7 +65,7 @@ userRouter.post('/login', async (req, res) => {
 		const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
 			expiresIn: '24h',
 		});
-		res.json({ success: true, token: 'JWT ' + token });
+		res.json({ success: true, token: token });
 	} catch (error) {
 		res.status(500).send({ success: false, message: error.message });
 	}

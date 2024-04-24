@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const session = require('express-session');
+const uuid = require('uuid').v4; // Import the uuid module to generate UUIDs
 require('dotenv').config();
 const mongoose = require('mongoose');
 const morgan = require('morgan');
@@ -22,6 +23,9 @@ const urlControllers = require('./src/controllers/url');
 // Session configuration
 app.use(
 	session({
+		genid: (req) => {
+			return uuid(); // Use UUIDs for session ID generation
+		},
 		secret: process.env.SESSION_SECRET, // Use an environmental variable for the secret
 		resave: false,
 		saveUninitialized: true,
