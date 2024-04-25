@@ -9,10 +9,10 @@ const mongoose = require('mongoose');
 const { spawn } = require('child_process');
 
 // Incoming URL addresses from the User
-router.post('/url/input', async (req, res) => {
+router.post('/check_url', async (req, res) => {
 	try {
 		const { url } = req.body;
-
+		console.log('The url that was sent: ' + url);
 		if (!url) {
 			return res
 				.status(400)

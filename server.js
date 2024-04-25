@@ -58,8 +58,8 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/user', userControllers);
-app.use('/', urlControllers);
+app.use('/user', userControllers); //
+app.use('/url', urlControllers);
 
 // Error Handling Middleware for Not Found
 app.use((req, res, next) => {

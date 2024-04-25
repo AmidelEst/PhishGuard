@@ -17,12 +17,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	//--------------listeners to *FORM's* submit button--------------//
 	const registerForm = document.getElementById('registerForm'); //listens to *register* submit button
 	const loginForm = document.getElementById('loginForm'); //listens to *register* submit button
+	const urlForm = document.getElementById('sendUrl');
 	//---------------------------------------------------//
 
 	const logOut = document.getElementById('logOut');
 	const apiUrl = 'http://localhost:3001';
 
 	//--------------assign functionalities to the 2 buttons on of main page-------------//
+
 	//mainPage -> Registration
 	goToRegister.addEventListener('click', function () {
 		mainPage.classList.add('hidden');
@@ -48,8 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		sendUrlPage.classList.remove('hidden');
 	};
 	//-----------------!end of HTML Basic binding!-------------------------------//
-	
-	
+
 	// 0) clicking on our extension icon
 	chrome.runtime.sendMessage({ event: 'onStart' }, function (response) {
 		if (response && response.success) {
@@ -73,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (registerPassword !== confirmPassword) {
 				alert('Passwords do not match.');
 				return;
-			}
+			} // send flag message
 			chrome.runtime.sendMessage(
 				{
 					message: 'register',
@@ -81,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						email: registerEmail,
 						password: registerPassword,
 					}, // Pass the email and password
-				},
+				}, // returns from background & user
 				function (response) {
 					if (response && response.success) {
 						alert('Registration Successful');
@@ -132,5 +133,26 @@ document.addEventListener('DOMContentLoaded', function () {
 				alert(`Logout Failed: ${response.message}`);
 			}
 		});
+	});
+
+	// 4) get url to check
+	urlForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const urlAdress = document.getElementById('url').value;
+		chrome.runtime.sendMessage(
+			{
+				message: 'checkUrl',
+				payload: {
+					urlAdress: urlAdress,
+				},
+			},
+			function (response) {
+				if (response && response.success) {
+					alert('checkUrl Successful');
+				} else {
+					alert(`checkUrl Failed: ${response.message}`);
+				}
+			}
+		);
 	});
 });

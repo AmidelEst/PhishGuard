@@ -18,6 +18,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Route to register a new user
+// '/user/register'
 userRouter.post('/register', async (req, res) => {
 	try {
 		const { email, password } = req.body;
