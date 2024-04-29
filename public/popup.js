@@ -138,19 +138,23 @@ document.addEventListener('DOMContentLoaded', function () {
 	// 4) get url to check
 	urlForm.addEventListener('submit', (e) => {
 		e.preventDefault();
-		const urlAdress = document.getElementById('url').value;
+		const urlAddress = document.getElementById('url').value;
+		console.log('site to seek: ' + urlAddress);
 		chrome.runtime.sendMessage(
 			{
 				message: 'checkUrl',
 				payload: {
-					urlAdress: urlAdress,
+					url: urlAddress,
 				},
 			},
 			function (response) {
+				console.log(response); // Check what you're actually receiving
 				if (response && response.success) {
 					alert('checkUrl Successful');
 				} else {
-					alert(`checkUrl Failed: ${response.message}`);
+					alert(
+						'checkUrl Failed: No response from server or unexpected response format.'
+					);
 				}
 			}
 		);

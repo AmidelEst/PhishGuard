@@ -1,52 +1,49 @@
-// src/controllers/url.js
-
 const express = require('express');
-const router = express.Router();
+const urlRouter = express.Router();
 
 const MonitoredSite = require('../models/monitoredSite');
 const mongoose = require('mongoose');
 
-const { spawn } = require('child_process');
-
 // Incoming URL addresses from the User
-router.post('/check_url', async (req, res) => {
+urlRouter.post('/check_url', async (req, res) => {
 	try {
 		const { url } = req.body;
-		console.log('The url that was sent: ' + url);
+		if (!url) throw new Error('URL parameter is required.');
+		console.log('The URL that was sent: ' + url);
+
 		if (!url) {
-			return res
-				.status(400)
-				.send({ error: 'URL parameter is required.' });
+			return res.status(400).json({
+				success: false,
+				message: 'URL parameter is required.',
+			});
 		}
 
-		const pythonProcess = spawn('python', ['scripts/logic.py', url]);
+		if (url.length > 4000) {
+			return res
+				.status(400)
+				.json({ success: false, message: 'The URL is too long.' });
+		}
 
-		let pythonData = '';
-		pythonProcess.stdout.on('data', (data) => {
-			pythonData += data.toString();
-		});
+		// Correct the syntax error in URL validation
+		if (!url.startsWith('http://') && !url.startsWith('https://')) {
+			return res
+				.status(400)
+				.json({ success: false, message: 'The URL is not valid.' });
+		}
 
-		pythonProcess.stderr.on('data', (data) => {
-			console.error(`stderr: ${data}`);
-		});
+		// If URL passes all checks, continue processing it (this part is hypothetical)
+		// Example: Save URL or pass it to some service, assuming validation passes
+		const monitoredSite = new MonitoredSite({ url });
+		await monitoredSite.save();
 
-		pythonProcess.on('close', (code) => {
-			console.log(`Python script exited with code ${code}`);
-			if (code === 0) {
-				res.send(pythonData);
-			} else {
-				res.status(500).send(
-					'Error occurred while running the Python script.'
-				);
-			}
-		});
+		res.json({ success: true, message: 'URL processed successfully.' });
 	} catch (err) {
 		console.error(err);
-		res.status(500).send({ message: 'An error occurred.' });
+		res.status(500).json({
+			message: 'An error occurred.',
+			error: err.message,
+		});
 	}
 });
 
-//python
-
-// Export the router
-module.exports = router;
+module.exports = urlRouter;

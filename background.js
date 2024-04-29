@@ -33,7 +33,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		return true;
 	}
 	if (request.message === 'checkUrl') {
-		handleCheckUrl(request.payload);
+		console.log('request.payload: ' + request.payload);
+		handleCheckUrl(request.payload, sendResponse);
 		return true;
 	}
 
@@ -125,23 +126,24 @@ function handleLogOut(sendResponse) {
 	});
 }
 
-function handleCheckUrl(url_info) {
-	return (
-		fetch(`${apiUrl}/url/check_url`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(url_info),
-		}) // wait to response from user.js
-			// we return from the server, lets start chose what to do with the response
-			.then((res) => res.json())
-			.then((data) => {
-				if (!data.success) {
-					throw new Error(data.message);
-				}
-				return { success: true, message: 'URL is Safe! :)' }; // coming back to popup js
-			})
-			.catch((error) => {
-				return { success: false, message: error.message };
-			})
-	);
+function handleCheckUrl(url_info, sendResponse) {
+	fetch(`${apiUrl}/url/check_url`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(url_info),
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			console.log(data);
+			if (!data.success) {
+				throw new Error(data.message);
+			}
+			sendResponse({ success: true, message: 'URL is Safe! :)' });
+		})
+		.catch((error) => {
+			sendResponse({ success: false, message: error.message });
+		});
+
+	// Indicate to Chrome that this will be answered asynchronously
+	return true;
 }
