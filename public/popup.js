@@ -1,26 +1,28 @@
 // /public/popup.js
 document.addEventListener('DOMContentLoaded', function () {
-	// Elements retrieval
+	// -----------Elements retrieval------------------//
 
-	//------------4 views of the app -----------------//
+	//------------4 views of the app------------------//
 	const mainPage = document.getElementById('mainPage');
 	const registerPage = document.getElementById('registerPage');
 	const loginPage = document.getElementById('loginPage');
 	const sendUrlPage = document.getElementById('sendUrlPage');
 	//------------------------------------------------//
 
-	//--------------listeners to buttons in main page--------------//
+	//------------listeners to buttons in main page---//
 	const goToRegister = document.getElementById('goToRegister');
 	const goToLogin = document.getElementById('goToLogin');
-	//---------------------------------------------------//
+	//------------------------------------------------//
 
-	//--------------listeners to *FORM's* submit button--------------//
+	//------------listeners to *FORM's* submit button-//
 	const registerForm = document.getElementById('registerForm'); //listens to *register* submit button
 	const loginForm = document.getElementById('loginForm'); //listens to *register* submit button
+	const sendUrlForm = document.getElementById('sendUrlForm');
 	//---------------------------------------------------//
 
 	const logOut = document.getElementById('logOut');
-	const apiUrl = 'http://localhost:3001';
+
+	//-----------------END of Elements retrieval------------------//
 
 	//--------------assign functionalities to the 2 buttons on of main page-------------//
 	//mainPage -> Registration
@@ -34,22 +36,21 @@ document.addEventListener('DOMContentLoaded', function () {
 		mainPage.classList.add('hidden');
 		loginPage.classList.remove('hidden');
 	});
-	//-----------------------------------------------//
+
 	//mainPage -> Registration
 	const goToMainPage = () => {
 		registerPage.classList.add('hidden');
 		sendUrlPage.classList.add('hidden');
 		mainPage.classList.remove('hidden');
 	};
-	//any  -> Send Url Page
+	//any -> Send Url Page
 	const goToSendUrlPage = () => {
 		loginPage.classList.add('hidden');
 		mainPage.classList.add('hidden');
 		sendUrlPage.classList.remove('hidden');
 	};
 	//-----------------!end of HTML Basic binding!-------------------------------//
-	
-	
+
 	// 0) clicking on our extension icon
 	chrome.runtime.sendMessage({ event: 'onStart' }, function (response) {
 		if (response && response.success) {
@@ -133,4 +134,29 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		});
 	});
+
+	// 4) sendUrlForm
+	if (sendUrlForm) {
+		sendUrlForm.addEventListener(
+			'submit',
+			async (e) => {
+				e.preventDefault();
+				const inputUrl = document.getElementById('urlField').value;
+				// console.log(inputUrl);
+				chrome.runtime.sendMessage({
+					message: 'checkUrl',
+					payload: { url: inputUrl },
+				});
+			},
+			function (response) {
+				if (response && response.state === 'safe') {
+					alert('link is Safe :)');
+				} else if (response && response.state === 'not safe') {
+					alert('unsecure site!!!');
+				} else {
+					alert(`error: ${response.message}`);
+				}
+			}
+		);
+	}
 });

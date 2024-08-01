@@ -3,6 +3,7 @@
 	"name": "Phishing Detector",
 	"version": "1.0",
 	"permissions": ["storage"],
+	"host_permissions": ["http://*/"],
 	"description": "A Chrome extension to protect users from phishing attacks.",
 	"background": {
 		"service_worker": "background.js"

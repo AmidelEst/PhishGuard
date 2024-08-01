@@ -33,7 +33,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
-app.use(cors());
+app.use(cors({ origin: process.env.API_URL }));
 app.use(morgan('dev'));
 
 // CORS and Security Headers

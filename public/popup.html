@@ -15,6 +15,7 @@
     <button id="goToRegister" class="button">Register</button>
     <button id="goToLogin" class="button">Log In</button>
   </div>
+
   <!-- Registration section-->
   <div id="registerPage" class="container hidden">
     <main class="form-Register">
@@ -72,12 +73,11 @@
       <span class="glyphicon glyphicon-log-out"></span> Log out
     </button>
     <!-- Send URL FORM-->
-    <main class="form-url">
+    <main class="sendUrlPage">
       <h1>send Url</h1>
-      <form id="sendUrl">
-        <label for="url">Enter an https:// URL:</label>
-        <input type="url" name="url" id="url" placeholder="https://example.com" pattern="https://.*" size="30"
-          required /><br />
+      <form id="sendUrlForm">
+        <label for="urlField">Enter an https:// URL:</label>
+        <input type="url" name="urlField" id="urlField" placeholder="https://example.com" size="30" required /><br />
         <button type="submit" class="button">is Safe?</button>
       </form>
     </main>

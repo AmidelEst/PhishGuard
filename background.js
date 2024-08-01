@@ -1,11 +1,11 @@
-let apiUrl = 'http://localhost:3001'; // Ensure this points to your actual API
+let apiUrl = 'http://localhost:3001';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log(request);
 	// Use the event property to identify the request type
 	if (request.event === 'onStart') {
 		checkAuthToken(sendResponse);
-		return true; // Necessary for asynchronous sendResponse
+		return true; // Keep message channel open for asynchronous response
 	}
 
 	if (request.message === 'register') {
@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				console.error(err);
 				sendResponse('fail');
 			});
-		return true; // Keep the message channel open for the asynchronous response
+		return true; // Keep message channel open for asynchronous response
 	}
 
 	if (request.message === 'login') {
@@ -25,12 +25,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				console.error(error);
 				sendResponse({ success: false, message: error.message });
 			});
-		return true;
+		return true; // Keep message channel open for asynchronous response
 	}
 
 	if (request.message === 'logOut') {
 		handleLogOut(sendResponse);
-		return true;
+		return true; // Keep the message channel open for the asynchronous response
 	}
 
 	// Default response for unhandled messages

@@ -17,7 +17,7 @@ const authenticateToken = (req, res, next) => {
 	});
 };
 
-// Route to register a new user
+// 1) Register Rout
 userRouter.post('/register', async (req, res) => {
 	try {
 		const { email, password } = req.body;
@@ -42,7 +42,7 @@ userRouter.post('/register', async (req, res) => {
 	}
 });
 
-// Route to login a user
+// 2) Login Rout
 userRouter.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
@@ -70,6 +70,8 @@ userRouter.post('/login', async (req, res) => {
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
+
+// 3) logOut Rout
 
 // Get user details (protected route)
 userRouter.get('/details', authenticateToken, async (req, res) => {
