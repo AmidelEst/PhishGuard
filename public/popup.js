@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	//-----------------END of Elements retrieval------------------//
 
 	//--------------assign functionalities to the 2 buttons on of main page-------------//
+
 	//mainPage -> Registration
 	goToRegister.addEventListener('click', function () {
 		mainPage.classList.add('hidden');
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	};
 	//-----------------!end of HTML Basic binding!-------------------------------//
 
+
 	// 0) clicking on our extension icon
 	chrome.runtime.sendMessage({ event: 'onStart' }, function (response) {
 		if (response && response.success) {
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (registerPassword !== confirmPassword) {
 				alert('Passwords do not match.');
 				return;
-			}
+			} // send flag message
 			chrome.runtime.sendMessage(
 				{
 					message: 'register',
@@ -82,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
 						email: registerEmail,
 						password: registerPassword,
 					}, // Pass the email and password
-				},
+				}, // returns from background & user
 				function (response) {
 					if (response && response.success) {
 						alert('Registration Successful');
@@ -135,28 +137,28 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	});
 
-	// 4) sendUrlForm
-	if (sendUrlForm) {
-		sendUrlForm.addEventListener(
-			'submit',
-			async (e) => {
-				e.preventDefault();
-				const inputUrl = document.getElementById('urlField').value;
-				// console.log(inputUrl);
-				chrome.runtime.sendMessage({
-					message: 'checkUrl',
-					payload: { url: inputUrl },
-				});
+	// 4) get url to check
+	urlForm.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const urlAddress = document.getElementById('url').value;
+		console.log('site to seek: ' + urlAddress);
+		chrome.runtime.sendMessage(
+			{
+				message: 'checkUrl',
+				payload: {
+					url: urlAddress,
+				},
 			},
 			function (response) {
-				if (response && response.state === 'safe') {
-					alert('link is Safe :)');
-				} else if (response && response.state === 'not safe') {
-					alert('unsecure site!!!');
+				console.log(response); // Check what you're actually receiving
+				if (response && response.success) {
+					alert('checkUrl Successful');
 				} else {
-					alert(`error: ${response.message}`);
+					alert(
+						'checkUrl Failed: No response from server or unexpected response format.'
+					);
 				}
 			}
 		);
-	}
+	});
 });

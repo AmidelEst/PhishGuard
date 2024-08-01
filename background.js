@@ -32,12 +32,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		handleLogOut(sendResponse);
 		return true; // Keep the message channel open for the asynchronous response
 	}
+	if (request.message === 'checkUrl') {
+		console.log('request.payload: ' + request.payload);
+		handleCheckUrl(request.payload, sendResponse);
+		return true;
+	}
 
 	// Default response for unhandled messages
 	sendResponse({ success: false, message: 'Unhandled request type' });
 	return false; // Synchronous response, no further action required
 });
-
+// second part = handler functions
 function checkAuthToken(sendResponse) {
 	chrome.storage.local.get('authToken', function (result) {
 		if (result.authToken) {
@@ -49,21 +54,25 @@ function checkAuthToken(sendResponse) {
 }
 
 function handleRegistration(user_info) {
-	return fetch(`${apiUrl}/user/register`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(user_info),
-	})
-		.then((res) => res.json())
-		.then((data) => {
-			if (!data.success) {
-				throw new Error(data.message);
-			}
-			return { success: true, message: 'Registration successful' };
-		})
-		.catch((error) => {
-			return { success: false, message: error.message };
-		});
+	// create request
+	return (
+		fetch(`${apiUrl}/user/register`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(user_info),
+		}) // wait to response from user.js
+			// we return from the server, lets start chose what to do with the response
+			.then((res) => res.json())
+			.then((data) => {
+				if (!data.success) {
+					throw new Error(data.message);
+				}
+				return { success: true, message: 'Registration successful' }; // coming back to popup js
+			})
+			.catch((error) => {
+				return { success: false, message: error.message };
+			})
+	);
 }
 
 function handleLogin(userCredentials) {
@@ -115,4 +124,26 @@ function handleLogOut(sendResponse) {
 			sendResponse({ success: true, message: 'Logged out successfully' });
 		}
 	});
+}
+
+function handleCheckUrl(url_info, sendResponse) {
+	fetch(`${apiUrl}/url/check_url`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(url_info),
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			console.log(data);
+			if (!data.success) {
+				throw new Error(data.message);
+			}
+			sendResponse({ success: true, message: 'URL is Safe! :)' });
+		})
+		.catch((error) => {
+			sendResponse({ success: false, message: error.message });
+		});
+
+	// Indicate to Chrome that this will be answered asynchronously
+	return true;
 }
