@@ -23,6 +23,7 @@ body {
 	background-size: cover;
 	background-position: center;
 }
+
 form label {
 	font-size: medium;
 	color: #e8eb15;
@@ -108,4 +109,41 @@ form .input-field {
 	top: 8px;
 	right: 16px;
 	font-size: 18px;
+}
+
+/* Notification styles */
+.notification {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	padding: 15px;
+	border-radius: 5px;
+	color: white;
+	font-size: 16px;
+	z-index: 1000;
+}
+.notification.success {
+	background-color: green;
+}
+
+.notification.error {
+	background-color: red;
+}
+
+
+.hidden {
+	display: none;
+}
+
+/* Backdrop styles */
+.backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 999;
+	display: none;
 }

@@ -2,16 +2,10 @@
 const mongoose = require('mongoose');
 
 const monitoredSiteSchema = new mongoose.Schema({
-	url: {
-		type: String,
-		required: [true, 'URL is required'],
-		unique: true,
-	},
-	// addedBy: {
-	//   ref: 'User',
-	//   required: [true, 'Admin user ID is required'],
-	// },
-	// You can add more fields here if needed
+	url: { type: String, unique: true, required: true },
+	hashedContent: { type: String },
+	minHash: { type: [Number] },
+	createdAt: { type: Date, default: Date.now },
 });
 
 const MonitoredSite = mongoose.model('MonitoredSite', monitoredSiteSchema);

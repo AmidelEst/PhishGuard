@@ -1,49 +1,52 @@
+// src/utils/url.js
 const express = require('express');
-const urlRouter = express.Router();
+const router = express.Router();
+const {
+	fetchAndHashSubmittedURL,
+	fetchWhitelistedSites,
+	compareMinHashes,
+} = require('../utils/comparisonMechanism');
 
-const MonitoredSite = require('../models/monitoredSite');
-const mongoose = require('mongoose');
+router.post('/check_url', async (req, res) => {
+	const { url } = req.body;
 
-// Incoming URL addresses from the User
-urlRouter.post('/check_url', async (req, res) => {
-	try {
-		const { url } = req.body;
-		if (!url) throw new Error('URL parameter is required.');
-		console.log('The URL that was sent: ' + url);
+	// Fetch and hash the submitted URL
+	const submittedResult = await fetchAndHashSubmittedURL(url);
+	if (!submittedResult) {
+		return res
+			.status(500)
+			.json({ success: false, message: 'Failed to process submitted URL.' });
+	}
 
-		if (!url) {
-			return res.status(400).json({
-				success: false,
-				message: 'URL parameter is required.',
-			});
-		}
+	// Fetch the whitelisted sites
+	const whitelistedSites = await fetchWhitelistedSites();
+	if (!whitelistedSites || whitelistedSites.length === 0) {
+		return res
+			.status(500)
+			.json({ success: false, message: 'No whitelisted sites found.' });
+	}
 
-		if (url.length > 4000) {
-			return res
-				.status(400)
-				.json({ success: false, message: 'The URL is too long.' });
-		}
+	// Compare the MinHash signatures
+	const { similarity, mostSimilarSite } = compareMinHashes(
+		submittedResult,
+		whitelistedSites
+	);
 
-		// Correct the syntax error in URL validation
-		if (!url.startsWith('http://') && !url.startsWith('https://')) {
-			return res
-				.status(400)
-				.json({ success: false, message: 'The URL is not valid.' });
-		}
-
-		// If URL passes all checks, continue processing it (this part is hypothetical)
-		// Example: Save URL or pass it to some service, assuming validation passes
-		const monitoredSite = new MonitoredSite({ url });
-		await monitoredSite.save();
-
-		res.json({ success: true, message: 'URL processed successfully.' });
-	} catch (err) {
-		console.error(err);
-		res.status(500).json({
-			message: 'An error occurred.',
-			error: err.message,
+	// Determine response based on similarity score
+	const similarityThreshold = 0.8; // Define your own threshold value
+	if (similarity > similarityThreshold) {
+		return res.status(200).json({
+			success: true,
+			message: `High similarity found with site: ${mostSimilarSite.url}`,
+			similarity,
+		});
+	} else {
+		return res.status(200).json({
+			success: false,
+			message: 'Low similarity score.',
+			similarity,
 		});
 	}
 });
 
-module.exports = urlRouter;
+module.exports = router;

@@ -18,6 +18,11 @@
 
   <!-- Registration section-->
   <div id="registerPage" class="container hidden">
+
+    <button id="goBackBtnFromRegister" type="button" class="btn1 btn-default btn-sm">
+      <span class="glyphicon glyphicon-log-out"></span>
+    </button>
+
     <main class="form-Register">
       <h1>Sign Up</h1>
       <form id="registerForm">
@@ -41,9 +46,13 @@
       </form>
     </main>
   </div>
-
   <!-- Log-In section-->
   <div id="loginPage" class="container hidden">
+
+    <button id="goBackBtnFromLogin" type="button" class="btn1 btn-default btn-sm">
+      <span class="glyphicon glyphicon-log-out"></span> 
+    </button>
+
     <main class="form-login">
       <h1>Log-in</h1>
       <form id="loginForm">
@@ -69,7 +78,7 @@
   <!-- Send URL section-->
   <div id="sendUrlPage" class="container hidden">
     <!-- Log-out section-->
-    <button id="logOut" type="button" class="btn1 btn-default btn-sm">
+    <button id="logOutBtn" type="button" class="btn1 btn-default btn-sm">
       <span class="glyphicon glyphicon-log-out"></span> Log out
     </button>
     <!-- Send URL FORM-->
@@ -82,6 +91,11 @@
       </form>
     </main>
   </div>
+  <div id="notification" class="notification hidden">
+    <span id="notification-message"></span>
+    <button id="close-notification-button" class="button">Close</button>
+  </div>
+  <div id="backdrop" class="backdrop hidden"></div>
 
   <script src="popup.js"></script>
 </body>

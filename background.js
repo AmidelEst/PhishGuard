@@ -1,5 +1,8 @@
+// background.js
+
 let apiUrl = 'http://localhost:3001';
 
+// listen to Messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log(request);
 	// Use the event property to identify the request type
@@ -32,6 +35,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		handleLogOut(sendResponse);
 		return true; // Keep the message channel open for the asynchronous response
 	}
+	
 	if (request.message === 'checkUrl') {
 		console.log('request.payload: ' + request.payload);
 		handleCheckUrl(request.payload, sendResponse);
@@ -42,7 +46,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	sendResponse({ success: false, message: 'Unhandled request type' });
 	return false; // Synchronous response, no further action required
 });
-// second part = handler functions
+//-----------------------------------------------------
+// handler functions
+
+// AuthToken
 function checkAuthToken(sendResponse) {
 	chrome.storage.local.get('authToken', function (result) {
 		if (result.authToken) {
@@ -52,7 +59,7 @@ function checkAuthToken(sendResponse) {
 		}
 	});
 }
-
+// Registration
 function handleRegistration(user_info) {
 	// create request
 	return (
@@ -74,7 +81,7 @@ function handleRegistration(user_info) {
 			})
 	);
 }
-
+// Login
 function handleLogin(userCredentials) {
 	return fetch(`${apiUrl}/user/login`, {
 		method: 'POST',
@@ -109,7 +116,7 @@ function handleLogin(userCredentials) {
 			return { success: false, message: error.message };
 		});
 }
-
+// LogOut
 function handleLogOut(sendResponse) {
 	chrome.storage.local.remove('authToken', () => {
 		if (chrome.runtime.lastError) {
@@ -125,7 +132,7 @@ function handleLogOut(sendResponse) {
 		}
 	});
 }
-
+// CheckUrl
 function handleCheckUrl(url_info, sendResponse) {
 	fetch(`${apiUrl}/url/check_url`, {
 		method: 'POST',
