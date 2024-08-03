@@ -160,7 +160,7 @@ async function compressAndHashHTML(url) {
 	}
 
 	// console.log(`URL: ${url}, MinHash: ${minHash}`);
-	return { minHash, content: normalizedContent, shingles };
+	return { url,minHash, content: normalizedContent, shingles };
 }
 
 module.exports = {

@@ -1,50 +1,49 @@
 // /public/popup.js
-// Immediately Invoked Function Expression (IIFE) (to avoid polluting the global scope)
+
+// Immediately Invoked Function Expression (IIFE)
+//(to avoid polluting the global scope)
 (function () {
-    // Function to show the notification
-    function showNotification(message, success) {
-        const notification = document.getElementById('notification');
-        const notificationMessage = document.getElementById('notification-message');
-        const backdrop = document.getElementById('backdrop');
+	// show the notification
+	function showNotification(message, success) {
+		const notification = document.getElementById('notification');
+		const notificationMessage = document.getElementById('notification-message');
+		const backdrop = document.getElementById('backdrop');
 
-        notificationMessage.innerText = message;
-        notification.classList.remove('hidden', 'success', 'error');
-        backdrop.classList.remove('hidden');
+		notificationMessage.innerText = message;
+		notification.classList.remove('hidden', 'success', 'error');
+		backdrop.classList.remove('hidden');
 
-        if (success) {
-            notification.classList.add('success');
-        } else {
-            notification.classList.add('error');
-        }
+		if (success) {
+			notification.classList.add('success');
+		} else {
+			notification.classList.add('error');
+		}
 
-        notification.style.display = 'block';
-        backdrop.style.display = 'block';
+		notification.style.display = 'block';
+		backdrop.style.display = 'block';
+	}
 
-        // Automatically hide the notification after 10 seconds
-        setTimeout(closeNotification, 10000);
-    }
+	// Function to close the notification
+	function closeNotification() {
+		const notification = document.getElementById('notification');
+		const backdrop = document.getElementById('backdrop');
 
-    // Function to close the notification
-    function closeNotification() {
-        const notification = document.getElementById('notification');
-        const backdrop = document.getElementById('backdrop');
+		notification.classList.add('hidden');
+		backdrop.classList.add('hidden');
+	}
 
-        notification.classList.add('hidden');
-        backdrop.classList.add('hidden');
-    }
+	// Add event listener to the close button
+	document.addEventListener('DOMContentLoaded', function () {
+		document
+			.getElementById('close-notification-button')
+			.addEventListener('click', closeNotification);
+	});
 
-    // Add event listener to the close button
-    document.addEventListener('DOMContentLoaded', function () {
-        document
-            .getElementById('close-notification-button')
-            .addEventListener('click', closeNotification);
-    });
-
-    // Expose showNotification function to the global scope
-    window.showNotification = showNotification;
+	// Expose showNotification function to the global scope
+	window.showNotification = showNotification;
 })();
 
-
+//------------Navigation buttons------------------------------------//
 (function () {
 	const registerPage = document.getElementById('registerPage');
 	const sendUrlPage = document.getElementById('sendUrlPage');
@@ -62,7 +61,6 @@
 	document.getElementById('goBackBtnFromLogin').addEventListener('click', goToMainPage);
 })();
 
-
 document.addEventListener('DOMContentLoaded', function () {
 	// -----------Elements retrieval------------------//
 
@@ -71,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	const registerPage = document.getElementById('registerPage');
 	const loginPage = document.getElementById('loginPage');
 	const sendUrlPage = document.getElementById('sendUrlPage');
-	//------------Navigation buttons------------------------------------//
 
 	//------------listeners to buttons in main page---//
 	const goToRegister = document.getElementById('goToRegister');
@@ -83,16 +80,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	const registerForm = document.getElementById('registerForm'); //listens to *register* submit button
 	const loginForm = document.getElementById('loginForm'); //listens to *register* submit button
 	const sendUrlForm = document.getElementById('sendUrlForm');
+	const urlField = document.getElementById('urlField');
 	//---------------------------------------------------//
-
-	//--------------assign functionalities to buttons-------------//
-
-	const disableElement = (elem) => {
-		elem.disabled = true;
-	};
-	const enableElement = (elem) => {
-		elem.disabled = false;
-	};
 
 	//mainPage -> Registration
 	goToRegister.addEventListener('click', function () {
@@ -125,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// 0) clicking on our extension icon
 	chrome.runtime.sendMessage({ event: 'onStart' }, function (response) {
-		if (response && response.success) {
+		if (response.success) {
 			goToSendUrlPage();
 			// Retrieve the saved URL when the popup is opened
 			chrome.storage.local.get('savedUrl', function (result) {
@@ -139,35 +128,109 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	// 1) Register event listener
+	const passwordLengthFeedback = document.getElementById('passwordLengthFeedback');
+	const passwordLetterNumberFeedback = document.getElementById(
+		'passwordLetterNumberFeedback'
+	);
+	const passwordSpecialCharFeedback = document.getElementById('passwordSpecialCharFeedback');
+	const passwordNoSpaceEmojiFeedback = document.getElementById(
+		'passwordNoSpaceEmojiFeedback'
+	);
+
 	if (registerForm) {
 		registerForm.addEventListener('submit', async (e) => {
 			e.preventDefault();
-			const registerEmail = document.getElementById('registerEmail').value;
-			const registerPassword = document.getElementById('registerPassword').value;
-			const confirmPassword = document.getElementById('confirmPassword').value;
 
-			if (registerPassword !== confirmPassword) {
-				showNotification('Passwords do not match.',false);
+			const password = registerPassword.value;
+			let isValid = true;
+
+			// Reset custom validity messages and hide all feedback
+			registerPassword.setCustomValidity('');
+			hideAllFeedback();
+
+			// Custom validation checks
+			if (password.length < 8 || password.length > 20) {
+				passwordLengthFeedback.style.display = 'block';
+				registerPassword.setCustomValidity('Invalid');
+				isValid = false;
+			} else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+				passwordLetterNumberFeedback.style.display = 'block';
+				registerPassword.setCustomValidity('Invalid');
+				isValid = false;
+			} else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+				passwordSpecialCharFeedback.style.display = 'block';
+				registerPassword.setCustomValidity('Invalid');
+				isValid = false;
+			} else if (/\s/.test(password) || /[\uD800-\uDFFF]/.test(password)) {
+				passwordNoSpaceEmojiFeedback.style.display = 'block';
+				registerPassword.setCustomValidity('Invalid');
+				isValid = false;
+			}
+
+			if (registerPassword.value !== confirmPassword.value) {
+				confirmPassword.setCustomValidity('Passwords do not match.');
+				confirmPassword.classList.add('is-invalid');
+				isValid = false;
+			} else {
+				confirmPassword.setCustomValidity('');
+				confirmPassword.classList.remove('is-invalid');
+			}
+
+			if (!isValid) {
+				registerPassword.classList.add('is-invalid');
+				registerForm.classList.add('was-validated');
 				return;
-			} // send flag message
-			chrome.runtime.sendMessage(
-				{
-					message: 'register',
-					payload: {
-						email: registerEmail,
-						password: registerPassword,
-					}, // Pass the email and password
-				}, // returns from background & user
-				function (response) {
-					if (response && response.success) {
-						showNotification('Registration Successful',true);
-						goToMainPage();
-					} else {
-						showNotification(`Registration Failed: ${response.message}`,false);
-					}
+			}
+
+			// Proceed with form submission
+			const payload = {
+				email: document.getElementById('registerEmail').value,
+				password: registerPassword.value,
+			};
+
+			chrome.runtime.sendMessage({ message: 'register', payload }, function (response) {
+				if (response.success) {
+					goToMainPage();
 				}
-			);
+				showNotification(response.message, response.success);
+			});
 		});
+
+		registerForm.addEventListener('input', function (e) {
+			if (e.target.checkValidity()) {
+				e.target.classList.remove('is-invalid');
+			} else {
+				e.target.classList.add('is-invalid');
+			}
+		});
+
+		registerPassword.addEventListener('input', function () {
+			confirmPassword.setCustomValidity('');
+			confirmPassword.classList.remove('is-invalid');
+			validatePassword();
+		});
+	}
+
+	function hideAllFeedback() {
+		passwordLengthFeedback.style.display = 'none';
+		passwordLetterNumberFeedback.style.display = 'none';
+		passwordSpecialCharFeedback.style.display = 'none';
+		passwordNoSpaceEmojiFeedback.style.display = 'none';
+	}
+
+	function validatePassword() {
+		const password = registerPassword.value;
+		hideAllFeedback();
+
+		if (password.length < 8 || password.length > 20) {
+			passwordLengthFeedback.style.display = 'block';
+		} else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+			passwordLetterNumberFeedback.style.display = 'block';
+		} else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+			passwordSpecialCharFeedback.style.display = 'block';
+		} else if (/\s/.test(password) || /[\uD800-\uDFFF]/.test(password)) {
+			passwordNoSpaceEmojiFeedback.style.display = 'block';
+		}
 	}
 
 	// 2) Login event listener
@@ -185,12 +248,8 @@ document.addEventListener('DOMContentLoaded', function () {
 					}, // Pass the email and password
 				},
 				function (response) {
-					if (response && response.success) {
-						showNotification('login Successful',true);
-						goToSendUrlPage();
-					} else {
-						showNotification(`login Failed: ${response.message}`,false);
-					}
+					if (response.success) goToSendUrlPage();
+					showNotification(`${response.message}`, response.success);
 				}
 			);
 		});
@@ -198,9 +257,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// 3) get url to check
 	// Save the URL whenever it changes
-	urlField.addEventListener('input', function () {
-		chrome.storage.local.set({ savedUrl: urlField.value });
-	});
+	if (urlField) {
+		urlField.addEventListener('input', function () {
+			chrome.storage.local.set({ savedUrl: urlField.value });
+		});
+	}
 	sendUrlForm.addEventListener('submit', (e) => {
 		e.preventDefault();
 		const urlAddress = document.getElementById('urlField').value;
@@ -213,12 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				},
 			},
 			function (response) {
-				console.log(response); // Check what you're actually receiving
-				if (response && response.success) {
-					showNotification('checkUrl Successful',true);
-				} else {
-					showNotification(`${response.message}`,false);
-				}
+				showNotification(`${response.message}`, response.success);
 			}
 		);
 	});
@@ -226,13 +282,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	// 4) logOut event listener
 	logOutBtn.addEventListener('click', () => {
 		chrome.runtime.sendMessage({ message: 'logOut' }, function (response) {
-			if (response && response.success) {
-				showNotification('Logout Successful',true);
-				goToMainPage();
-			} else {
-				// This will now properly display the message from the background script, if any
-				showNotification(`Logout Failed: ${response.message}`,false);
-			}
+			if (response.success) goToMainPage();
+
+			showNotification(response.message, response.success);
 		});
 	});
 });

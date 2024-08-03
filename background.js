@@ -68,7 +68,7 @@ function handleRegistration(user_info) {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(user_info),
 		}) // wait to response from user.js
-			// we return from the server, lets start chose what to do with the response
+			// we return from the server
 			.then((res) => res.json())
 			.then((data) => {
 				if (!data.success) {
@@ -145,10 +145,10 @@ function handleCheckUrl(url_info, sendResponse) {
 			if (!data.success) {
 				throw new Error(data.message);
 			}
-			sendResponse({ success: true, message: 'URL is Safe! :)' });
+			sendResponse({ success: data.success, message: data.message });
 		})
 		.catch((error) => {
-			sendResponse({ success: false, message: error.message });
+			sendResponse({ success: data.success, message: data.message });
 		});
 
 	// Indicate to Chrome that this will be answered asynchronously

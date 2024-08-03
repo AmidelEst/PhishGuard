@@ -1,11 +1,12 @@
-// src/utils/url.js
+// src/controllers/url.js
 const express = require('express');
 const router = express.Router();
+
 const {
 	fetchAndHashSubmittedURL,
 	fetchWhitelistedSites,
 	compareMinHashes,
-} = require('../utils/comparisonMechanism');
+} = require('../utils/similarityScoring');
 
 router.post('/check_url', async (req, res) => {
 	const { url } = req.body;
@@ -37,7 +38,7 @@ router.post('/check_url', async (req, res) => {
 	if (similarity > similarityThreshold) {
 		return res.status(200).json({
 			success: true,
-			message: `High similarity found with site: ${mostSimilarSite.url}`,
+			message: `High similarity of ${similarity},\nwith site: ${mostSimilarSite.siteName}\n`,
 			similarity,
 		});
 	} else {

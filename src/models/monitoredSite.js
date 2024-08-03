@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 
 const monitoredSiteSchema = new mongoose.Schema({
+	siteName: { type: String, unique: true, required: true },
 	url: { type: String, unique: true, required: true },
 	hashedContent: { type: String },
 	minHash: { type: [Number] },

@@ -1,18 +1,14 @@
-/* Google Fonts - Poppins */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-
 * {
 	margin: 0;
 	padding: 0;
-	box-sizing: border-box;
-	font-family: 'Poppins', sans-serif;
 }
 .hidden {
 	display: none;
 }
+
 body {
-	width: 400px;
-	height: 400px;
+	width: 450px;
+	height: 450px;
 	display: flex;
 	align-items: center;
 }
@@ -25,20 +21,16 @@ body {
 }
 
 form label {
-	font-size: medium;
+	/* font-size: medium; */
 	color: #e8eb15;
 	font-weight: bold;
 }
-
-.container header {
-	font-size: larger;
+h1 {
 	font-weight: 600;
 	color: #e8eb15;
+	font-size: 25px;
 }
-main h1 {
-	color: #e8eb15;
-}
-form .input-field {
+form .input-form-label {
 	position: relative;
 	height: fit-content;
 	width: 75%;
@@ -46,7 +38,7 @@ form .input-field {
 .checkbox {
 	margin-left: 50px;
 }
-.input-field input {
+.form-control input {
 	height: 100%;
 	width: fit-content;
 	outline: none;
@@ -58,7 +50,7 @@ form .input-field {
 .invalid input {
 	border-color: #d93025;
 }
-.input-field .show-hide {
+.form-cont .show-hide {
 	position: absolute;
 	right: 13px;
 	top: 50%;
@@ -68,7 +60,7 @@ form .input-field {
 	cursor: pointer;
 	padding: 3px;
 }
-.field .error {
+.form-label .error {
 	display: flex;
 	align-items: center;
 	margin-top: 6px;
@@ -89,39 +81,78 @@ form .input-field {
 .create-password .error-icon {
 	margin-top: 4px;
 }
-.button {
+.button,
+.btn-group-sm > .btn,
+.btn-sm {
 	transition-duration: 0.4s;
 }
-.button {
+.button,
+.btn-group-sm > .btn,
+.btn-sm {
 	background-color: transparent;
 	color: #e8eb15;
 	border-color: #008cba;
-	font-size: 25px;
+	font-size: 20px;
 	margin-top: 10px;
 }
 
-.button:hover {
-	background-color: #008cba; /* Green */
+.button:hover,
+.btn-group-sm > .btn:hover,
+.btn-sm:hover {
+	background-color: #008cba;
 	color: white;
 }
-.btn1 {
+.btn-right-corner {
 	position: absolute;
 	top: 8px;
 	right: 16px;
 	font-size: 18px;
 }
+.btn-down-left-corner {
+	position: absolute;
+	bottom: 30px;
+	/* left: 16px; */
+	font-size: 18px;
+	text-align: center;
+}
 
 /* Notification styles */
 .notification {
-	position: fixed;
+	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	padding: 15px;
-	border-radius: 5px;
+	padding: 20px;
+	border-radius: 8px;
 	color: white;
-	font-size: 16px;
+	font-size: 18px;
+	line-height: 1.5;
 	z-index: 1000;
+	width: 300px;
+	background-color: #4caf50;
+	box-sizing: border-box;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add some shadow for better visibility */
+	text-align: left; /* Center align the text */
+}
+
+/* Button styles */
+#close-notification-button {
+	background-color: #ffeb3b; /* Yellow background */
+	color: #000; /* Black text */
+	border: 2px solid #4caf50; /* Green border to match notification */
+	border-radius: 4px; /* Rounded corners */
+	padding: 5px 10px; /* Padding for the button */
+	cursor: pointer;
+	text-decoration: none;
+	font-weight: bold; /* Bold text for the button */
+	font-size: 16px; /* Slightly larger font size */
+	display: inline-block; /* Ensure button does not stretch */
+	margin-top: 10px; /* Add some space above the button */
+}
+
+#close-notification-button:hover {
+	background-color: green;
+	color: yellow;
 }
 .notification.success {
 	background-color: green;
@@ -129,11 +160,6 @@ form .input-field {
 
 .notification.error {
 	background-color: red;
-}
-
-
-.hidden {
-	display: none;
 }
 
 /* Backdrop styles */
@@ -146,4 +172,34 @@ form .input-field {
 	background: rgba(0, 0, 0, 0.5);
 	z-index: 999;
 	display: none;
+}
+
+#passwordHelpBlock{
+	color: #d1d1d1;
+}
+
+
+/* Custom styles for floating invalid feedback */
+.invalid-feedback {
+    position: absolute;
+    background-color: rgba(255, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+    width: fit-content;
+    z-index: 10;
+    display: none; /* Hidden by default */
+    transform: translateX(70%) translateY(5%); /* Position to the right and above the input */
+    white-space: nowrap;
+}
+
+/* Show invalid feedback when input is invalid */
+input.is-invalid ~ .invalid-feedback {
+    display: block; /* Show when input is invalid */
+}
+
+/* Ensure form groups are positioned relatively */
+.form-group {
+    position: relative;
 }

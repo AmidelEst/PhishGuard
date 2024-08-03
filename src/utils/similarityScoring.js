@@ -1,6 +1,6 @@
 // src/utils/comparisonMechanism.js
 const MonitoredSite = require('../models/monitoredSite');
-const { compressAndHashHTML } = require('./urlToHashContent');
+const { compressAndHashHTML } = require('./urlToHash');
 
 // Fetch and hash the submitted URL
 async function fetchAndHashSubmittedURL(url) {
@@ -17,13 +17,13 @@ async function fetchAndHashSubmittedURL(url) {
 async function fetchWhitelistedSites() {
 	try {
 		const sites = await MonitoredSite.find({});
-		console.log(
-			`Whitelisted Sites: ${JSON.stringify(
-				sites.map((site) => ({ url: site.url })), //, minHash: site.minHash
-				null,
-				3
-			)}`
-		);
+		// console.log(
+		// 	`Whitelisted Sites: ${JSON.stringify(
+		// 		sites.map((site) => ({ url: site.url })), //, minHash: site.minHash
+		// 		null,
+		// 		3
+		// 	)}`
+		// );
 		return sites;
 	} catch (error) {
 		console.error('Error fetching whitelisted sites:', error);
@@ -44,7 +44,7 @@ function compareMinHashes(submitted, whitelistedSites) {
 
 		const similarity = jaccardSimilarity(submitted.minHash, site.minHash);
 		console.log(
-			`Comparing Submitted MinHash with Whitelisted MinHash, Similarity: ${similarity}`
+			`Comparing ${submitted.url} MinHash with Whitelisted ${site.siteName} , Similarity: ${similarity}`
 		);
 
 		if (similarity > highestSimilarity) {
