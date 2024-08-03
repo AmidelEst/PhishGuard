@@ -1,32 +1,38 @@
-// whitelist.js
-// const mongoose = require('mongoose');
+// src/utils/whitelist.js
+const fs = require('fs');
+const path = require('path');
 const MonitoredSite = require('../models/monitoredSite');
 const { compressAndHashHTML } = require('./urlToHashContent');
 
-// Sample whitelist URLs
-const whitelist = [
-	'https://is.hit.ac.il/nidp/idff/sso?id=risk2fa&sid=0&option=credential&sid=0&target=https%3A%2F%2Fportal.hit.ac.il%2F',
-	'https://www.facebook.com/login.php/',
-	'https://www.instagram.com/accounts/login/?hl=en',
-	
-];
+// Function to read whitelist URLs from JSON file
+function readWhitelistFromFile() {
+	const filePath = path.join(__dirname, 'whitelist.json');
+	const fileData = fs.readFileSync(filePath, 'utf-8');
+	const whitelist = JSON.parse(fileData);
+	return whitelist.map((site) => site.url);
+}
 
+// Setup whitelist
 async function setupWhitelist() {
+	const whitelist = readWhitelistFromFile();
 	try {
 		await addSitesToWhitelist(whitelist);
-		console.log('All sites added to the whitelist.');
+
 	} catch (error) {
 		console.error('Error adding sites to the whitelist:', error);
 	}
+	console.log('All sites added to the whitelist.');
 }
 
 async function addSiteToWhitelist(url) {
 	try {
-		const { minHash, content } = await compressAndHashHTML(url);
-		if (!minHash || !content) {
+		const result = await compressAndHashHTML(url);
+		if (!result) {
 			console.error(`Failed to compress and hash content for ${url}`);
 			return;
 		}
+
+		const { minHash, content } = result;
 
 		await MonitoredSite.findOneAndUpdate(
 			{ url: url },

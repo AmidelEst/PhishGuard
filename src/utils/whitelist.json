@@ -1,0 +1,41 @@
+[
+	{
+		"name": "Facebook",
+		"url": "https://www.facebook.com/login.php"
+	},
+	{
+		"name": "LinkedIn",
+		"url": "https://www.linkedin.com/login"
+	},
+	{
+		"name": "YouTube",
+		"url": "https://accounts.google.com/ServiceLogin?service=youtube"
+	},
+	{
+		"name": "Instagram",
+		"url": "https://www.instagram.com/accounts/login/"
+	},
+
+	{
+		"name": "Gmail",
+		"url": "https://accounts.google.com/ServiceLogin?service=mail"
+	},
+
+	{
+		"name": "GitHub",
+		"url": "https://github.com/login"
+	},
+	{
+		"name": "Dropbox",
+		"url": "https://www.dropbox.com/login"
+	},
+
+	{
+		"name": "Pinterest",
+		"url": "https://www.pinterest.com/login/"
+	},
+	{
+		"name": "Tumblr",
+		"url": "https://www.tumblr.com/login"
+	}
+]

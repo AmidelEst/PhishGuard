@@ -1,0 +1,26 @@
+[
+	{
+		"name": "Netflix",
+		"url": "https://www.netflix.com/login"
+	},
+	{
+		"name": "Spotify",
+		"url": "https://accounts.spotify.com/en/login"
+	},
+	{
+		"name": "Amazon",
+		"url": "https://www.amazon.com/ap/signin"
+	},
+	{
+		"name": "Reddit",
+		"url": "https://www.reddit.com/login/"
+	},
+	{
+		"name": "Microsoft",
+		"url": "https://login.live.com/"
+	},
+	{
+		"name": "Twitter",
+		"url": "https://twitter.com/login"
+	}
+]

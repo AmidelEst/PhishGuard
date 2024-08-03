@@ -1,5 +1,5 @@
 // /public/popup.js
-// Immediately Invoked Function Expression (IIFE) to avoid polluting the global scope
+// Immediately Invoked Function Expression (IIFE) (to avoid polluting the global scope)
 (function () {
     // Function to show the notification
     function showNotification(message, success) {
@@ -20,8 +20,8 @@
         notification.style.display = 'block';
         backdrop.style.display = 'block';
 
-        // Automatically hide the notification after 3 seconds
-        setTimeout(closeNotification, 3000);
+        // Automatically hide the notification after 10 seconds
+        setTimeout(closeNotification, 10000);
     }
 
     // Function to close the notification
