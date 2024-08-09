@@ -1,5 +1,5 @@
 // src/utils/comparisonMechanism.js
-const MonitoredSite = require('../models/monitoredSite');
+const MonitoredSite = require('../models/sites/monitoredSite');
 const { compressAndHashHTML } = require('./urlToHash');
 
 // Fetch and hash the submitted URL

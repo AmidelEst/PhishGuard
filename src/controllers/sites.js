@@ -1,4 +1,4 @@
-// src/controllers/url.js
+// src/controllers/sites.js
 const express = require('express');
 const router = express.Router();
 
@@ -34,7 +34,8 @@ router.post('/check_url', async (req, res) => {
 	);
 
 	// Determine response based on similarity score
-	const similarityThreshold = 0.8; // Define your own threshold value
+	const similarityThreshold = 0.8;
+	
 	if (similarity > similarityThreshold) {
 		return res.status(200).json({
 			success: true,

@@ -1,10 +1,11 @@
+// server.js
+
 const express = require('express');
-const session = require('express-session');
-const { v4: uuidv4 } = require('uuid');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
+const helmet = require('helmet');
 
 dotenv.config();
 
@@ -23,34 +24,29 @@ async function connectToMongoDB() {
 	}
 }
 function startServer() {
-	// Session configuration
-	app.use(
-		session({
-			genid: () => uuidv4(),
-			secret: process.env.SESSION_SECRET,
-			resave: false,
-			saveUninitialized: true,
-			cookie: { secure: process.env.NODE_ENV === 'production' },
-		})
-	);
+	// Security Middleware
+	app.use(helmet()); // Sets various HTTP headers to help protect
 
 	// Middleware
 	app.use(express.json());
 	app.use(express.static('public'));
-	app.use(cors({ origin: process.env.API_URL }));
+	app.use(cors({ origin: process.env.API_URL || '*' })); // Default to allow all origins if API_URL is not set
 	app.use(morgan('dev'));
+	app.use(express.urlencoded({ extended: true }));
 
 	// Import Controllers
-	const userControllers = require('./src/controllers/user');
-	const urlControllers = require('./src/controllers/url');
+	const adminUserControllers = require('./src/controllers/users/adminUser');
+	const regularUserControllers = require('./src/controllers/users/regularUser');
+	const sitesControllers = require('./src/controllers/sites');
 
-	// Setup whitelist URLs
+	// Setup whitelist
 	const setupWhitelist = require('./src/utils/whitelist');
-	setupWhitelist(); // Call the function to setup the whitelist
+	setupWhitelist();
 
 	// Routes
-	app.use('/user', userControllers);
-	app.use('/url', urlControllers);
+	app.use('/admin', adminUserControllers);
+	app.use('/user', regularUserControllers);
+	app.use('/sites', sitesControllers);
 
 	// Error Handling Middleware for Not Found
 	app.use((req, res, next) => {
@@ -62,9 +58,19 @@ function startServer() {
 	// Central Error Handling
 	app.use((err, req, res, next) => {
 		res.status(err.status || 500).json({
-			error: {
-				message: err.message || 'Internal Server Error',
-			},
+			error: { message: err.message || 'Internal Server Error' },
+		});
+	});
+
+	// Graceful shutdown
+	process.on('SIGTERM', () => {
+		console.log('SIGTERM signal received: closing HTTP server');
+		server.close(() => {
+			console.log('HTTP server closed');
+			mongoose.connection.close(false, () => {
+				console.log('MongoDB connection closed');
+				process.exit(0);
+			});
 		});
 	});
 

@@ -1,10 +1,10 @@
 // src/utils/urlToHashContent.js
-const axios = require('axios');
-const cheerio = require('cheerio');
-const crypto = require('crypto');
-const puppeteer = require('puppeteer');
+const axios = require('axios'); 		//fetch static  pages
+const puppeteer = require('puppeteer'); //fetch dynamic pages
+const cheerio = require('cheerio');		//RUN over DOM by properties 
+const crypto = require('crypto');		// Utilize a hash function
 
-// Normalize URL by removing fragments
+// removing URL fragments
 function normalizeUrl(url) {
 	try {
 		const normalizedUrl = new URL(url);
@@ -16,7 +16,7 @@ function normalizeUrl(url) {
 	}
 }
 
-// Fetch HTML content using Axios
+// Fetch HTML using Axios
 async function fetchHTMLWithAxios(url) {
 	try {
 		const response = await axios.get(url);
@@ -29,7 +29,7 @@ async function fetchHTMLWithAxios(url) {
 	}
 }
 
-// Fetch HTML content using Puppeteer
+// Fetch HTML using Puppeteer
 async function fetchHTMLWithPuppeteer(url) {
 	try {
 		const browser = await puppeteer.launch({ headless: true });
@@ -69,7 +69,9 @@ function extractContent(html, url) {
 	return bodyText;
 }
 
-// Fetch HTML content using Axios first and fallback to Puppeteer if needed
+// GLOBAL fetch function 
+//* try to first fetch HTML using Axios
+//! if Axios fails -> try fetch using Puppeteer
 async function fetchHTML(url) {
 	const axiosHtml = await fetchHTMLWithAxios(url);
 	if (axiosHtml) {
@@ -85,7 +87,7 @@ async function fetchHTML(url) {
 	return fetchHTMLWithPuppeteer(url);
 }
 
-// Normalize text content by removing punctuation and extra spaces
+// Normalize DOM's text by removing: punctuation and extra spaces
 function normalizeText(text) {
 	return text
 		.toLowerCase()
@@ -101,6 +103,7 @@ function getShingles(text, shingleSize = 3) {
 	for (let i = 0; i <= text.length - shingleSize; i++) {
 		shingles.add(text.substring(i, i + shingleSize));
 	}
+	// console.log(shingles);
 	return Array.from(shingles);
 }
 
@@ -122,9 +125,7 @@ function generateMinHash(shingles, numHashes = 200) { //* param effects score
 	});
 }
 
-
-
-// Compress and hash HTML content
+// GLOBAL FUNCTION - Compress and hash HTML content
 async function compressAndHashHTML(url) {
 	const normalizedUrl = normalizeUrl(url);
 	if (!normalizedUrl) return null;

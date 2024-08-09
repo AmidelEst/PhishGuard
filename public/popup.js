@@ -255,13 +255,13 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	// 3) get url to check
 	// Save the URL whenever it changes
 	if (urlField) {
 		urlField.addEventListener('input', function () {
 			chrome.storage.local.set({ savedUrl: urlField.value });
 		});
 	}
+	// 3) get url to check
 	sendUrlForm.addEventListener('submit', (e) => {
 		e.preventDefault();
 		const urlAddress = document.getElementById('urlField').value;
@@ -274,7 +274,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				},
 			},
 			function (response) {
-				showNotification(`${response.message}`, response.success);
+				showNotification(response.message, response.success);
+				console.log(response.message, response.success);
 			}
 		);
 	});

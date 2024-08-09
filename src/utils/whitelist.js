@@ -1,7 +1,8 @@
 // src/utils/whitelist.js
+
 const fs = require('fs');
 const path = require('path');
-const MonitoredSite = require('../models/monitoredSite');
+const MonitoredSite = require('../models/sites/monitoredSite');
 const { compressAndHashHTML } = require('./urlToHash');
 
 // Function to read whitelist URLs from JSON file
@@ -41,7 +42,7 @@ async function addSiteToWhitelist(site) {
 			{ url: url },
 			{
 				siteName: siteName,
-				url: url,
+				url:url,
 				minHash: minHash,
 				content: content,
 			},
