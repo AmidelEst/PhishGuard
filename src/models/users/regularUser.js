@@ -1,17 +1,15 @@
 // src/models/users/regularUser.js
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-
-const regularUserSchema = new mongoose.Schema(
+const regularUserSchema = new Schema(
 	{
-		name: { type: String, required: true },
 		email: { type: String, required: true, unique: true },
 		password: { type: String, required: true },
 		role: { type: String, enum: ['user', 'admin'], default: 'user' },
 		subscribedAdmin: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'AdminUser',
-			required: true,
+			ref: 'AdminUser',required: true,
 		},
 		securityLevel: {
 			type: String,

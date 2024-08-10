@@ -18,60 +18,57 @@
     <button id="goToLogin" class="button">Log In</button>
   </div>
 
-  <!-- Registration section-->
-  <div id="registerPage" class="container hidden">
-    <button id="goBackBtnFromRegister" type="button" class="btn-right-corner btn-outline-primary btn-sm">
-      <span class="glyphicon glyphicon-log-out"></span>
-    </button>
-  
-    <main class="form-Register">
-      <h1>Sign Up</h1>
-      <form id="registerForm" class="needs-validation" novalidate>
-        <div class="mb-3 form-group">
-          <label for="registerEmail" class="form-label">Email address</label>
-          <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
-          <div class="invalid-feedback">
-            Please enter a valid email address.
-          </div>
-        </div>
-  
-        <div class="mb-3 form-group">
-          <label for="registerPassword" class="form-label">Password</label>
-          <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
-          <div class="invalid-feedback" id="passwordLengthFeedback">
-            Password must be 8-20 characters long.
-          </div>
-          <div class="invalid-feedback" id="passwordLetterNumberFeedback">
-            Password must contain letters and numbers.
-          </div>
-          <div class="invalid-feedback" id="passwordSpecialCharFeedback">
-            Password must contain special characters.
-          </div>
-          <div class="invalid-feedback" id="passwordNoSpaceEmojiFeedback">
-            Password must not contain spaces or emoji.
-          </div>
-        </div>
-  
-        <div class="mb-3 form-group">
-          <label for="confirmPassword" class="form-label">Confirm Password</label>
-          <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
-          <div class="invalid-feedback">
-            Please confirm your password.
-          </div>
-        </div>
-  
-        <div class="mb-3 form-check">
-          <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-          <label for="agreeTerms" class="form-check-label">I agree to the terms and conditions</label>
-          <div class="invalid-feedback">
-            You must agree to the terms and conditions.
-          </div>
-        </div>
-  
-        <button type="submit" id="submitRegisterBtn" class="btn-down-left-corner btn-outline-primary btn-sm">Register</button>
-      </form>
-    </main>
-  </div>
+<!-- Registration section-->
+<div id="registerPage" class="container hidden">
+  <button id="goBackBtnFromRegister" type="button" class="btn-right-corner btn-outline-primary btn-sm">
+    <span class="glyphicon glyphicon-log-out"></span>
+  </button>
+
+  <main class="form-Register">
+    <h1>Sign Up</h1>
+    <form id="registerForm" class="needs-validation" novalidate>
+      <div class="mb-3 form-group">
+        <label for="registerEmail" class="form-label">Email address</label>
+        <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
+        <div class="invalid-feedback">Please enter a valid email address.</div>
+      </div>
+
+      <div class="mb-3 form-group">
+        <label for="registerPassword" class="form-label">Password</label>
+        <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
+        <div class="invalid-feedback" id="passwordLengthFeedback">Password must be 8-20 characters long.</div>
+        <div class="invalid-feedback" id="passwordLetterNumberFeedback">Password must contain letters and numbers.</div>
+        <div class="invalid-feedback" id="passwordSpecialCharFeedback">Password must contain special characters.</div>
+        <div class="invalid-feedback" id="passwordNoSpaceEmojiFeedback">Password must not contain spaces or emoji.</div>
+      </div>
+
+      <div class="mb-3 form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+        <div class="invalid-feedback">Please confirm your password.</div>
+      </div>
+
+      <!-- New Admin Selection Field -->
+      <div class="mb-3 form-group">
+        <label for="adminDropdown" class="form-label">Subscribe to Admin</label>
+        <select id="adminDropdown" class="form-control" required>
+          <option value="" disabled selected>Select an Admin...</option>
+          <!-- Options will be populated dynamically -->
+        </select>
+        <div class="invalid-feedback">Please select an admin.</div>
+      </div>
+
+      <div class="mb-3 form-check">
+        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+        <label for="agreeTerms" class="form-check-label">I agree to the terms and conditions</label>
+        <div class="invalid-feedback">You must agree to the terms and conditions.</div>
+      </div>
+
+      <button type="submit" id="submitRegisterBtn"
+        class="btn-down-left-corner btn-outline-primary btn-sm">Register</button>
+    </form>
+  </main>
+</div>
 
   <!-- Log-In section-->
   <div id="loginPage" class="container hidden">

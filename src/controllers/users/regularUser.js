@@ -3,6 +3,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const regularUserRouter = express.Router();
 const RegularUser = require('../../models/users/regularUser');
+const AdminUser = require('../../models/users/adminUser');
 const {generateToken,verifyToken} = require('../../utils/authUtils');
 
 // Middleware to authenticate token
@@ -17,11 +18,10 @@ const authenticateToken = (req, res, next) => {
     next(); // Proceed to the next middleware or route handler
 };
 
-
-// 0) register - regularUser
+// 0) POST - register - regularUser
 regularUserRouter.post('/register', async (req, res) => {
 	try {
-		const { email, password } = req.body;
+		const { email, password, subscribedAdmin } = req.body;
 		const existingUser = await RegularUser.findOne({ email });
 
 		if (existingUser) {
@@ -29,7 +29,7 @@ regularUserRouter.post('/register', async (req, res) => {
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10);
-		const newUser = new RegularUser({ email, password: hashedPassword });
+		const newUser = new RegularUser({ email, password: hashedPassword, subscribedAdmin });
 		await newUser.save();
 
 		res.status(201).send({ success: true, message: 'User registered successfully' });
@@ -37,7 +37,8 @@ regularUserRouter.post('/register', async (req, res) => {
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-// 1) login - regularUser
+
+// 1) POST - login - regularUser
 regularUserRouter.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
@@ -58,12 +59,12 @@ regularUserRouter.post('/login', async (req, res) => {
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-// 2) logout - regularUser
+// 2) POST - logout - regularUser
 regularUserRouter.post('/logout', (req, res) => {
 	res.json({ success: true, message: 'Logged out successfully' });
 });
 
-// 3) details - regularUser
+// GET - details - regularUser
 regularUserRouter.get('/details', authenticateToken, async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) return res.sendStatus(401);
@@ -77,6 +78,16 @@ regularUserRouter.get('/details', authenticateToken, async (req, res) => {
 
 		res.send({ success: true, email: foundUser.email });
 	});
+});
+
+// GET - admin-list
+regularUserRouter.get('/admin-list', async (req, res) => {
+	try {
+		const admins = await AdminUser.find({}, 'email name'); // Fetch only email and name
+		res.status(200).json({ success: true, admins });
+	} catch (error) {
+		res.status(500).json({ success: false, message: error.message });
+	}
 });
 
 module.exports = regularUserRouter;

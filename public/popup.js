@@ -1,291 +1,227 @@
 // /public/popup.js
 
-// Immediately Invoked Function Expression (IIFE)
-//(to avoid polluting the global scope)
 (function () {
-	// show the notification
-	function showNotification(message, success) {
-		const notification = document.getElementById('notification');
-		const notificationMessage = document.getElementById('notification-message');
-		const backdrop = document.getElementById('backdrop');
+	// ----------- Utility Functions ------------------//
+
+	const getElement = (id) => document.getElementById(id);
+
+	// Show notification
+	const showNotification = (message, success) => {
+		const notification = getElement('notification');
+		const notificationMessage = getElement('notification-message');
+		const backdrop = getElement('backdrop');
 
 		notificationMessage.innerText = message;
 		notification.classList.remove('hidden', 'success', 'error');
 		backdrop.classList.remove('hidden');
 
-		if (success) {
-			notification.classList.add('success');
-		} else {
-			notification.classList.add('error');
-		}
-
+		notification.classList.add(success ? 'success' : 'error');
 		notification.style.display = 'block';
 		backdrop.style.display = 'block';
-	}
+	};
 
-	// Function to close the notification
-	function closeNotification() {
-		const notification = document.getElementById('notification');
-		const backdrop = document.getElementById('backdrop');
+	// Close notification
+	const closeNotification = () => {
+		const notification = getElement('notification');
+		const backdrop = getElement('backdrop');
 
 		notification.classList.add('hidden');
 		backdrop.classList.add('hidden');
-	}
-
-	// Add event listener to the close button
-	document.addEventListener('DOMContentLoaded', function () {
-		document
-			.getElementById('close-notification-button')
-			.addEventListener('click', closeNotification);
-	});
-
-	// Expose showNotification function to the global scope
-	window.showNotification = showNotification;
-})();
-
-//------------Navigation buttons------------------------------------//
-(function () {
-	const registerPage = document.getElementById('registerPage');
-	const sendUrlPage = document.getElementById('sendUrlPage');
-	const loginPage = document.getElementById('loginPage');
-	const mainPage = document.getElementById('mainPage');
-
-	const goToMainPage = () => {
-		registerPage.classList.add('hidden');
-		sendUrlPage.classList.add('hidden');
-		loginPage.classList.add('hidden');
-		mainPage.classList.remove('hidden');
 	};
 
-	document.getElementById('goBackBtnFromRegister').addEventListener('click', goToMainPage);
-	document.getElementById('goBackBtnFromLogin').addEventListener('click', goToMainPage);
-})();
+	// Navigation between pages
+	const goToMainPage = () => navigateToPage('mainPage');
+	const goToSendUrlPage = () => navigateToPage('sendUrlPage');
 
-document.addEventListener('DOMContentLoaded', function () {
-	// -----------Elements retrieval------------------//
-
-	//------------Pages Binding------------------//
-	const mainPage = document.getElementById('mainPage');
-	const registerPage = document.getElementById('registerPage');
-	const loginPage = document.getElementById('loginPage');
-	const sendUrlPage = document.getElementById('sendUrlPage');
-
-	//------------listeners to buttons in main page---//
-	const goToRegister = document.getElementById('goToRegister');
-	const goToLogin = document.getElementById('goToLogin');
-	const logOutBtn = document.getElementById('logOutBtn');
-	//------------Forms Binding------------------------------------//
-
-	//------------listeners to *FORM's* submit button-//
-	const registerForm = document.getElementById('registerForm'); //listens to *register* submit button
-	const loginForm = document.getElementById('loginForm'); //listens to *register* submit button
-	const sendUrlForm = document.getElementById('sendUrlForm');
-	const urlField = document.getElementById('urlField');
-	//---------------------------------------------------//
-
-	//mainPage -> Registration
-	goToRegister.addEventListener('click', function () {
-		mainPage.classList.add('hidden');
-		registerPage.classList.remove('hidden');
-	});
-
-	//mainPage -> LoginPage
-	goToLogin.addEventListener('click', function () {
-		mainPage.classList.add('hidden');
-		loginPage.classList.remove('hidden');
-	});
-
-	//any -> mainPage -> Registration
-	const goToMainPage = () => {
-		registerPage.classList.add('hidden');
-		sendUrlPage.classList.add('hidden');
-		loginPage.classList.add('hidden');
-		mainPage.classList.remove('hidden');
-	};
-	//any -> Send Url Page
-	const goToSendUrlPage = () => {
-		loginPage.classList.add('hidden');
-		mainPage.classList.add('hidden');
-		registerPage.classList.add('hidden');
-		sendUrlPage.classList.remove('hidden');
+	// Hide/Display mechanism
+	const navigateToPage = (pageId) => {
+		const pages = ['mainPage', 'registerPage', 'loginPage', 'sendUrlPage'];
+		pages.forEach((page) => getElement(page).classList.add('hidden'));
+		getElement(pageId).classList.remove('hidden');
 	};
 
-	//-----------------!end of HTML Basic binding!-------------------------------//
+	// Hide all password validation feedback
+	const hideAllFeedback = () => {
+		const feedbackIds = [
+			'passwordLengthFeedback',
+			'passwordLetterNumberFeedback',
+			'passwordSpecialCharFeedback',
+			'passwordNoSpaceEmojiFeedback',
+		];
+		feedbackIds.forEach((id) => (getElement(id).style.display = 'none'));
+	};
 
-	// 0) clicking on our extension icon
-	chrome.runtime.sendMessage({ event: 'onStart' }, function (response) {
-		if (response.success) {
-			goToSendUrlPage();
-			// Retrieve the saved URL when the popup is opened
-			chrome.storage.local.get('savedUrl', function (result) {
-				if (result.savedUrl) {
-					urlField.value = result.savedUrl;
-				}
-			});
-		} else {
-			goToMainPage();
-		}
-	});
-
-	// 1) Register event listener
-	const passwordLengthFeedback = document.getElementById('passwordLengthFeedback');
-	const passwordLetterNumberFeedback = document.getElementById(
-		'passwordLetterNumberFeedback'
-	);
-	const passwordSpecialCharFeedback = document.getElementById('passwordSpecialCharFeedback');
-	const passwordNoSpaceEmojiFeedback = document.getElementById(
-		'passwordNoSpaceEmojiFeedback'
-	);
-
-	if (registerForm) {
-		registerForm.addEventListener('submit', async (e) => {
-			e.preventDefault();
-
-			const password = registerPassword.value;
-			let isValid = true;
-
-			// Reset custom validity messages and hide all feedback
-			registerPassword.setCustomValidity('');
-			hideAllFeedback();
-
-			// Custom validation checks
-			if (password.length < 8 || password.length > 20) {
-				passwordLengthFeedback.style.display = 'block';
-				registerPassword.setCustomValidity('Invalid');
-				isValid = false;
-			} else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-				passwordLetterNumberFeedback.style.display = 'block';
-				registerPassword.setCustomValidity('Invalid');
-				isValid = false;
-			} else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-				passwordSpecialCharFeedback.style.display = 'block';
-				registerPassword.setCustomValidity('Invalid');
-				isValid = false;
-			} else if (/\s/.test(password) || /[\uD800-\uDFFF]/.test(password)) {
-				passwordNoSpaceEmojiFeedback.style.display = 'block';
-				registerPassword.setCustomValidity('Invalid');
-				isValid = false;
-			}
-
-			if (registerPassword.value !== confirmPassword.value) {
-				confirmPassword.setCustomValidity('Passwords do not match.');
-				confirmPassword.classList.add('is-invalid');
-				isValid = false;
-			} else {
-				confirmPassword.setCustomValidity('');
-				confirmPassword.classList.remove('is-invalid');
-			}
-
-			if (!isValid) {
-				registerPassword.classList.add('is-invalid');
-				registerForm.classList.add('was-validated');
-				return;
-			}
-
-			// Proceed with form submission
-			const payload = {
-				email: document.getElementById('registerEmail').value,
-				password: registerPassword.value,
-			};
-
-			chrome.runtime.sendMessage({ message: 'register', payload }, function (response) {
-				if (response.success) {
-					goToMainPage();
-				}
-				showNotification(response.message, response.success);
-			});
-		});
-
-		registerForm.addEventListener('input', function (e) {
-			if (e.target.checkValidity()) {
-				e.target.classList.remove('is-invalid');
-			} else {
-				e.target.classList.add('is-invalid');
-			}
-		});
-
-		registerPassword.addEventListener('input', function () {
-			confirmPassword.setCustomValidity('');
-			confirmPassword.classList.remove('is-invalid');
-			validatePassword();
-		});
-	}
-
-	function hideAllFeedback() {
-		passwordLengthFeedback.style.display = 'none';
-		passwordLetterNumberFeedback.style.display = 'none';
-		passwordSpecialCharFeedback.style.display = 'none';
-		passwordNoSpaceEmojiFeedback.style.display = 'none';
-	}
-
-	function validatePassword() {
-		const password = registerPassword.value;
+	// Validate password with custom feedback
+	const validatePassword = () => {
+		const password = getElement('registerPassword').value;
 		hideAllFeedback();
 
 		if (password.length < 8 || password.length > 20) {
-			passwordLengthFeedback.style.display = 'block';
+			getElement('passwordLengthFeedback').style.display = 'block';
 		} else if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-			passwordLetterNumberFeedback.style.display = 'block';
+			getElement('passwordLetterNumberFeedback').style.display = 'block';
 		} else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-			passwordSpecialCharFeedback.style.display = 'block';
+			getElement('passwordSpecialCharFeedback').style.display = 'block';
 		} else if (/\s/.test(password) || /[\uD800-\uDFFF]/.test(password)) {
-			passwordNoSpaceEmojiFeedback.style.display = 'block';
+			getElement('passwordNoSpaceEmojiFeedback').style.display = 'block';
 		}
-	}
+	};
 
-	// 2) Login event listener
-	if (loginForm) {
-		loginForm.addEventListener('submit', async (e) => {
-			e.preventDefault();
-			const loginEmail = document.getElementById('loginEmail').value;
-			const loginPassword = document.getElementById('loginPassword').value;
-			chrome.runtime.sendMessage(
-				{
-					message: 'login',
-					payload: {
-						email: loginEmail,
-						password: loginPassword,
-					}, // Pass the email and password
-				},
-				function (response) {
-					if (response.success) goToSendUrlPage();
-					showNotification(`${response.message}`, response.success);
-				}
-			);
-		});
-	}
+	// Populate admin dropdown
+	const populateAdminDropdown = (admins) => {
+		const adminDropdown = getElement('adminDropdown');
+		adminDropdown.innerHTML = ''; // Clear existing options
 
-	// Save the URL whenever it changes
-	if (urlField) {
-		urlField.addEventListener('input', function () {
-			chrome.storage.local.set({ savedUrl: urlField.value });
+		admins.forEach((admin) => {
+			const option = document.createElement('option');
+			option.value = admin._id;
+			option.text = admin.email;
+			adminDropdown.appendChild(option);
 		});
-	}
-	// 3) get url to check
-	sendUrlForm.addEventListener('submit', (e) => {
-		e.preventDefault();
-		const urlAddress = document.getElementById('urlField').value;
-		console.log('site to seek: ' + urlAddress);
-		chrome.runtime.sendMessage(
-			{
-				message: 'checkUrl',
-				payload: {
-					url: urlAddress,
-				},
-			},
-			function (response) {
-				showNotification(response.message, response.success);
-				console.log(response.message, response.success);
+	};
+
+	// Fetch admin list
+	const fetchAdminList = () => {
+		chrome.runtime.sendMessage({ message: 'fetchAdminList' }, function (response) {
+			if (response.success) {
+				populateAdminDropdown(response.admins);
+			} else {
+				showNotification('Failed to load admin list. Please try again later.', false);
 			}
-		);
-	});
+		});
+	};
 
-	// 4) logOut event listener
-	logOutBtn.addEventListener('click', () => {
-		chrome.runtime.sendMessage({ message: 'logOut' }, function (response) {
-			if (response.success) goToMainPage();
+	// ----------- Event Listeners ------------------//
 
-			showNotification(response.message, response.success);
+	// Add event listeners on document load
+	document.addEventListener('DOMContentLoaded', () => {
+		// Close notification event
+		getElement('close-notification-button').addEventListener('click', closeNotification);
+
+		// Navigation button events
+		getElement('goToRegister').addEventListener('click', () => {
+			goToMainPage();
+			navigateToPage('registerPage');
+			fetchAdminList();
+		});
+
+		getElement('goToLogin').addEventListener('click', () => navigateToPage('loginPage'));
+		getElement('goBackBtnFromRegister').addEventListener('click', goToMainPage);
+		getElement('goBackBtnFromLogin').addEventListener('click', goToMainPage);
+
+		// Registration form submit event
+		const registerForm = getElement('registerForm');
+		if (registerForm) {
+			registerForm.addEventListener('submit', (e) => {
+				e.preventDefault();
+				const email = document.getElementById('registerEmail').value;
+				const password = getElement('registerPassword').value;
+				const confirmPassword = getElement('confirmPassword').value;
+				const selectedAdmin = getElement('adminDropdown').value;
+				let isValid = true;
+
+				// Reset custom validity messages and hide all feedback
+				registerPassword.setCustomValidity('');
+				hideAllFeedback();
+				/// Validate password
+				// validatePassword();
+
+				if (password !== confirmPassword) {
+					getElement('confirmPassword').setCustomValidity('Passwords do not match.');
+					isValid = false;
+				} else {
+					getElement('confirmPassword').setCustomValidity('');
+				}
+
+				if (!selectedAdmin) {
+					getElement('adminDropdown').setCustomValidity('Invalid');
+					isValid = false;
+				}
+
+				if (!isValid) {
+					registerForm.classList.add('was-validated');
+					return;
+				}
+
+				// Send registration request
+				const payload = {
+					email: getElement('registerEmail').value,
+					password: registerPassword.value,
+					subscribedAdmin: selectedAdmin,
+				};
+
+				chrome.runtime.sendMessage({ message: 'register', payload }, (response) => {
+					if (response.success) goToMainPage();
+					showNotification(response.message, response.success);
+				});
+			});
+
+			// Validation for input fields
+			registerForm.addEventListener('input', function (e) {
+				e.target.classList.toggle('is-invalid', !e.target.checkValidity());
+			});
+
+			getElement('registerPassword').addEventListener('input', validatePassword);
+		}
+
+		// Login form submit event
+		const loginForm = getElement('loginForm');
+		if (loginForm) {
+			loginForm.addEventListener('submit', (e) => {
+				e.preventDefault();
+
+				const payload = {
+					email: getElement('loginEmail').value,
+					password: getElement('loginPassword').value,
+				};
+
+				chrome.runtime.sendMessage({ message: 'login', payload }, (response) => {
+					if (response.success) goToSendUrlPage();
+					showNotification(response.message, response.success);
+				});
+			});
+		}
+
+		// Send URL form submit event
+		const sendUrlForm = getElement('sendUrlForm');
+		if (sendUrlForm) {
+			sendUrlForm.addEventListener('submit', (e) => {
+				e.preventDefault();
+				const urlAddress = getElement('urlField').value;
+
+				chrome.runtime.sendMessage(
+					{
+						message: 'checkUrl',
+						payload: { url: urlAddress },
+					},
+					(response) => {
+						showNotification(response.message, response.success);
+					}
+				);
+			});
+		}
+
+		// Logout event
+		const logOutBtn = getElement('logOutBtn');
+		if (logOutBtn) {
+			logOutBtn.addEventListener('click', () => {
+				chrome.runtime.sendMessage({ message: 'logOut' }, (response) => {
+					if (response.success) goToMainPage();
+					showNotification(response.message, response.success);
+				});
+			});
+		}
+
+		// Handle extension icon click
+		chrome.runtime.sendMessage({ message: 'onStart' }, (response) => {
+			if (response.success) {
+				goToSendUrlPage();
+				chrome.storage.local.get('savedUrl', (result) => {
+					if (result.savedUrl) getElement('urlField').value = result.savedUrl;
+				});
+			} else {
+				goToMainPage();
+			}
 		});
 	});
-});
+})();

@@ -9,9 +9,7 @@
 	"scripts": {
 		"test": "jest",
 		"start": "node server.js",
-		"dev": "nodemon server.js",
-		"setup-python": "python -m venv .venv && .venv\\Scripts\\activate.bat && pip install -r requirements.txt",
-		"activate-venv": ".venv\\Scripts\\activate.bat"
+		"dev": "nodemon server.js"
 	},
 	"author": "",
 	"license": "ISC",

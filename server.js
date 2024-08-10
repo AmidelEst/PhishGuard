@@ -40,8 +40,8 @@ function startServer() {
 	const sitesControllers = require('./src/controllers/sites');
 
 	// Setup whitelist
-	const setupWhitelist = require('./src/utils/whitelist');
-	setupWhitelist();
+	// const setupWhitelist = require('./src/utils/whitelist');
+	// setupWhitelist();
 
 	// Routes
 	app.use('/admin', adminUserControllers);

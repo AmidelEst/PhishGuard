@@ -5,8 +5,9 @@ const adminUserRouter = express.Router();
 const AdminUser = require('../../models/users/adminUser');
 const Whitelist = require('../../models/sites/whitelist');
 const MonitoredSite = require('../../models/sites/monitoredSite');
+const { compressAndHashHTML } = require('../../utils/urlToHash');
 const bcrypt = require('bcrypt');
-const { generateToken, verifyToken } = require('../../utils/authUtils');
+const { generateToken } = require('../../utils/authUtils');
 const roleMiddleware = require('../../middleware/roleMiddleware');
 
 // 0) register - adminUser
@@ -51,7 +52,7 @@ adminUserRouter.post('/login', async (req, res) => {
 				.send({ success: false, message: 'Authentication failed. Wrong password.' });
 		}
 
-		const token = generateToken({ _id: user._id });
+		const token = generateToken({ _id: user._id, role: 'admin' });
 		res.json({ success: true, token });
 	} catch (error) {
 		res.status(500).send({ success: false, message: error.message });
@@ -61,10 +62,14 @@ adminUserRouter.post('/login', async (req, res) => {
 adminUserRouter.post('/logout', (req, res) => {
 	res.json({ success: true, message: 'Logged out successfully' });
 });
+
 // Create Whitelist
-adminUserRouter.post('/createWhitelist', async (req, res) => {
+adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, res) => {
 	try {
-		const { adminId } = req.body;
+		const { whitelistName } = req.body;
+
+		// Get the adminId from req.user, which is set by the roleMiddleware
+		const adminId = req.user._id;
 
 		// Verify the admin exists
 		const admin = await AdminUser.findById(adminId);
@@ -73,13 +78,13 @@ adminUserRouter.post('/createWhitelist', async (req, res) => {
 		}
 
 		// Create the whitelist
-		const newWhitelist = new Whitelist({ adminId });
+		const newWhitelist = new Whitelist({ adminId, whitelistName });
 		await newWhitelist.save();
 
-		res.status(201).send(
-			{success: true,message: 'Whitelist created successfully',
-			whitelist: newWhitelist,}
-		);
+		res.status(201).send({
+			success: true,
+			message: 'Whitelist created successfully',
+		});
 	} catch (error) {
 		res.status(500).send({ success: false, message: error.message });
 	}
@@ -88,36 +93,65 @@ adminUserRouter.post('/createWhitelist', async (req, res) => {
 // Add Site to Whitelist
 adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (req, res) => {
 	try {
-		const { adminId, whitelistId, siteName, url, DOM, minHash } = req.body;
+		const { whitelistName, sites } = req.body;
+		const adminId = req.user._id;
 
-		// Verify the admin exists
-		const admin = await AdminUser.findById(adminId);
-		if (!admin) {
-			return res.status(404).send({ success: false, message: 'Admin not found' });
-		}
-
-		// Verify the whitelist exists
-		const whitelist = await Whitelist.findById(whitelistId);
+		// Verify that the whitelist exists for this admin
+		const whitelist = await Whitelist.findOne({ adminId, whitelistName });
 		if (!whitelist) {
 			return res.status(404).send({ success: false, message: 'Whitelist not found' });
 		}
 
-		// Create a new monitored site
-		const newMonitoredSite = new MonitoredSite({ adminId, siteName, url, DOM, minHash });
-		await newMonitoredSite.save();
+		// Array to store results
+		const addedSites = [];
+		const errors = [];
 
-		// Add the site to the whitelist
-		whitelist.monitoredSites.push(newMonitoredSite._id);
+		// Loop through the sites array
+		for (let site of sites) {
+			const { siteName, url } = site;
+
+			// Check if the site already exists
+			const existingSite = await MonitoredSite.findOne({ url });
+			if (existingSite) {
+				errors.push({ siteName, message: 'Site already exists' });
+				continue; // Skip to the next site
+			}
+
+			// Process the site
+			const hashedResult = await compressAndHashHTML(url);
+			if (!hashedResult) {
+				errors.push({ siteName, message: 'Failed to hash site content' });
+				continue; // Skip to the next site
+			}
+
+			// Create a new monitored site
+			const newMonitoredSite = new MonitoredSite({
+				whitelistId: whitelist._id,
+				siteName,
+				url: hashedResult.url,
+				DOM: hashedResult.content,
+				minHash: hashedResult.minHash,
+			});
+			await newMonitoredSite.save();
+
+			// Add the site to the whitelist
+			whitelist.monitoredSites.push(newMonitoredSite._id);
+			addedSites.push(newMonitoredSite);
+		}
+
+		// Save the updated whitelist
 		await whitelist.save();
 
+		// Send the response
 		res.status(201).send({
 			success: true,
-			message: 'Site added to whitelist successfully',
-			site: newMonitoredSite,
+			message: 'Sites processed',
+			addedSites,
+			errors,
 		});
 	} catch (error) {
+		console.error('Error adding sites to whitelist:', error.message);
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-
 module.exports = adminUserRouter;

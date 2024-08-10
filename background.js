@@ -5,46 +5,52 @@ let apiUrl = 'http://localhost:3001';
 // Listen to Messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log(request);
-	// Use the event property to identify the request type
-	if (request.event === 'onStart') {
-		checkAuthToken(sendResponse);
-		return true; // Keep message channel open for asynchronous response
+
+	switch (request.message) {
+		case 'onStart':
+			checkAuthToken(sendResponse);
+			return true;
+
+		// 0) register
+		case 'register':
+			handleRegistration(request.payload)
+				.then(sendResponse)
+				.catch((err) => {
+					console.error(err);
+					sendResponse({ success: false, message: 'Registration failed' });
+				});
+			return true;
+
+		case 'fetchAdminList':
+			fetchAdminList(sendResponse);
+			return true;
+
+		// 1) login
+		case 'login':
+			handleLogin(request.payload)
+				.then(sendResponse)
+				.catch((error) => {
+					console.error(error);
+					sendResponse({ success: false, message: 'Login failed' });
+				});
+			return true;
+
+		// 3) logOut
+		case 'logOut':
+			handleLogOut(sendResponse);
+			return true;
+
+		// 4) checkUrl
+		case 'checkUrl':
+			handleCheckUrl(request.payload, sendResponse);
+			return true;
+
+		default:
+			sendResponse({ success: false, message: 'Unhandled request type' });
+			return true;
 	}
 
-	if (request.message === 'register') {
-		handleRegistration(request.payload)
-			.then(sendResponse)
-			.catch((err) => {
-				console.error(err);
-				sendResponse('fail');
-			});
-		return true; // Keep message channel open for asynchronous response
-	}
-
-	if (request.message === 'login') {
-		handleLogin(request.payload)
-			.then(sendResponse)
-			.catch((error) => {
-				console.error(error);
-				sendResponse({ success: false, message: error.message });
-			});
-		return true; // Keep message channel open for asynchronous response
-	}
-
-	if (request.message === 'logOut') {
-		handleLogOut(sendResponse);
-		return true; // Keep the message channel open for the asynchronous response
-	}
-
-	if (request.message === 'checkUrl') {
-		console.log('request.payload: ' + request.payload);
-		handleCheckUrl(request.payload, sendResponse);
-		return true;
-	}
-
-	// Default response for unhandled messages
-	sendResponse({ success: false, message: 'Unhandled request type' });
-	return false; // Synchronous response, no further action required
+	return true; // Keep message channel open for asynchronous response
 });
 
 //-----------------------------------------------------
@@ -61,7 +67,6 @@ function checkAuthToken(sendResponse) {
 	});
 }
 
-
 // 0) handle register
 function handleRegistration(user_info) {
 	return fetch(`${apiUrl}/user/register`, {
@@ -71,13 +76,7 @@ function handleRegistration(user_info) {
 	})
 		.then((res) => res.json())
 		.then((data) => {
-			if (!data.success) {
-				throw new Error(data.message);
-			}
-			return { success: true, message: 'Registration successful' };
-		})
-		.catch((error) => {
-			return { success: false, message: error.message };
+			return { success: data.success, message: data.message };
 		});
 }
 
@@ -94,6 +93,7 @@ function handleLogin(userCredentials) {
 				throw new Error(data.message);
 			}
 			return new Promise((resolve, reject) => {
+				console.log(userStatus, data.token);
 				chrome.storage.local.set(
 					{
 						userStatus: 'loggedIn',
@@ -161,4 +161,23 @@ function handleCheckUrl(url_info, sendResponse) {
 	});
 
 	return true;
+}
+// Handler function to fetch admin list
+function fetchAdminList(sendResponse) {
+	fetch(`${apiUrl}/user/admin-list`, {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			if (!data.success) {
+				throw new Error(data.message);
+			}
+			sendResponse({ success: true, admins: data.admins });
+		})
+		.catch((error) => {
+			sendResponse({ success: false, message: error.message });
+		});
 }
