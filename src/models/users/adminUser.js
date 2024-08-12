@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 
 const adminUserSchema = new Schema(
 	{
+		userName: { type: String, unique: true, required: true },
 		email: { type: String, unique: true, required: true },
 		password: { type: String, required: true }, // Remember to hash passwords before saving
 		role: { type: String, default: 'admin' },

@@ -1,128 +1,180 @@
-<!--/public/popup.html-->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="popup.css">
   <title>Anti-Phishing Extension</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
-  <!-- mainPage section-->
-  <div id="mainPage" class="container">
+  <!-- Main Page -->
+  <div id="mainPage" class="container text-center">
     <h1>Anti-Phishing Extension</h1>
-    <button id="goToRegister" class="button">Register</button>
-    <button id="goToLogin" class="button">Log In</button>
+    <button id="goToRegister" class="btn btn-outline-primary">Register</button>
+    <button id="goToLogin" class="btn btn-outline-primary">Log In</button>
   </div>
 
-<!-- Registration section-->
-<div id="registerPage" class="container hidden">
-  <button id="goBackBtnFromRegister" type="button" class="btn-right-corner btn-outline-primary btn-sm">
-    <span class="glyphicon glyphicon-log-out"></span>
-  </button>
+  <!-- Registration Page -->
+  <div id="registerPage" class="container hidden">
+    <!-- Back Button -->
+    <button id="goBackBtnFromRegister" type="button" class="btn btn-outline-primary btn-right-corner">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+        class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
+        <path
+          d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z" />
+      </svg>
+    </button>
 
-  <main class="form-Register">
-    <h1>Sign Up</h1>
-    <form id="registerForm" class="needs-validation" novalidate>
-      <div class="mb-3 form-group">
-        <label for="registerEmail" class="form-label">Email address</label>
-        <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
-        <div class="invalid-feedback">Please enter a valid email address.</div>
-      </div>
+    <!-- Registration Form -->
+    <main class="form-Register">
+      <h1>Sign Up</h1>
+      <form id="registerForm" class="needs-validation" novalidate>
+        <!-- Email Input -->
+        <div class="form-group mb-3">
+          <label for="registerEmail" class="form-label">Email address</label>
+          <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
+          <div class="invalid-feedback">Please enter a valid email address.</div>
+        </div>
 
-      <div class="mb-3 form-group">
-        <label for="registerPassword" class="form-label">Password</label>
-        <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
-        <div class="invalid-feedback" id="passwordLengthFeedback">Password must be 8-20 characters long.</div>
-        <div class="invalid-feedback" id="passwordLetterNumberFeedback">Password must contain letters and numbers.</div>
-        <div class="invalid-feedback" id="passwordSpecialCharFeedback">Password must contain special characters.</div>
-        <div class="invalid-feedback" id="passwordNoSpaceEmojiFeedback">Password must not contain spaces or emoji.</div>
-      </div>
+        <!-- Password Input -->
+        <div class="form-group mb-3">
+          <label for="registerPassword" class="form-label">Password</label>
+          <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
+          <div class="invalid-feedback">Password must be 8-20 characters long.</div>
+        </div>
 
-      <div class="mb-3 form-group">
-        <label for="confirmPassword" class="form-label">Confirm Password</label>
-        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
-        <div class="invalid-feedback">Please confirm your password.</div>
-      </div>
+        <!-- Confirm Password Input -->
+        <div class="form-group mb-3">
+          <label for="confirmPassword" class="form-label">Confirm Password</label>
+          <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+          <div class="invalid-feedback">Please confirm your password.</div>
+        </div>
 
-      <!-- New Admin Selection Field -->
-      <div class="mb-3 form-group">
-        <label for="adminDropdown" class="form-label">Subscribe to Admin</label>
-        <select id="adminDropdown" class="form-control" required>
-          <option value="" disabled selected>Select an Admin...</option>
-          <!-- Options will be populated dynamically -->
-        </select>
-        <div class="invalid-feedback">Please select an admin.</div>
-      </div>
+        <!-- Admin and Whitelist Dropdowns -->
+        <div class="row mb-3">
+          <!-- Admin Dropdown -->
+          <div class="form-group col">
+            <label for="adminDropdown" class="form-label">Subscribe to Admin</label>
+            <select id="adminDropdown" class="form-control" required>
+              <option value="" disabled selected>Select an Admin...</option>
+            </select>
+            <div class="invalid-feedback">Please select an admin.</div>
+          </div>
 
-      <div class="mb-3 form-check">
-        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-        <label for="agreeTerms" class="form-check-label">I agree to the terms and conditions</label>
-        <div class="invalid-feedback">You must agree to the terms and conditions.</div>
-      </div>
+          <!-- Whitelist Dropdown -->
+          <div class="form-group col">
+            <label for="whitelistDropdown" class="form-label">Subscribe to Whitelist</label>
+            <select id="whitelistDropdown" class="form-control" required>
+              <option value="" disabled selected>Select a Whitelist...</option>
+            </select>
+            <div class="invalid-feedback">Please select a whitelist.</div>
+          </div>
+        </div>
 
-      <button type="submit" id="submitRegisterBtn"
-        class="btn-down-left-corner btn-outline-primary btn-sm">Register</button>
-    </form>
-  </main>
-</div>
+        <!-- Terms and Conditions -->
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+          <label class="form-check-label" for="agreeTerms">I agree to the terms and conditions</label>
+          <div class="invalid-feedback">You must agree to the terms and conditions.</div>
+        </div>
 
-  <!-- Log-In section-->
+        <!-- Submit Button -->
+        <button type="submit" id="submitRegisterBtn"
+          class="btn btn-outline-primary btn-sm btn-down-left-corner">Register</button>
+      </form>
+    </main>
+  </div>
+
+  <!-- Login Page -->
   <div id="loginPage" class="container hidden">
-
-    <button id="goBackBtnFromLogin" type="button" class="btn-right-corner btn-outline-primary btn-sm">
-      <span class="glyphicon glyphicon-log-out"></span>
+    <button id="goBackBtnFromLogin" type="button" class="btn btn-outline-primary btn-right-corner">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+        class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
+        <path
+          d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z" />
+      </svg>
     </button>
 
     <main class="form-login">
-      <h1>Log-in</h1>
+      <h1>Log In</h1>
+      <!-- Login Form -->
       <form id="loginForm">
-        <div class="mb-3 form-group">
-          <label for="loginEmail" class="form-label">Email address</label><br />
+        <!-- Email Input -->
+        <div class="form-group mb-3">
+          <label for="loginEmail" class="form-label">Email address</label>
           <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required>
+          <div class="invalid-feedback">Please enter a valid email address.</div>
         </div>
-        <div class="mb-3 form-group">
-          <label for="loginPassword" class="form-label">Password</label><br />
+
+        <!-- Password Input -->
+        <div class="form-group mb-3">
+          <label for="loginPassword" class="form-label">Password</label>
           <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+          <div class="invalid-feedback">Please enter your password.</div>
         </div>
-        <div class="checkbox form-group">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="rememberMeSwitch">
-            <label for="rememberMeSwitch" class="form-check-label ">Remember me</label>
-          </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" id="rememberMeSwitch">
+          <label for="rememberMeSwitch" class="form-check-label">Remember me</label>
         </div>
-        <button type="submit" id="submitLoginBtn" class="btn-down-left-corner btn-outline-primary btn-sm">Login</button>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submitLoginBtn"
+          class="btn btn-outline-primary btn-sm btn-down-left-corner">Login</button>
       </form>
     </main>
   </div>
 
-  <!-- Send URL section-->
+  <!-- Send URL Page -->
   <div id="sendUrlPage" class="container hidden">
-    <!-- Log-out btn-->
-    <button id="logOutBtn" type="button" class="btn-right-corner btn-outline-primary btn-sm">
+    <!-- Log Out Button -->
+    <button id="logOutBtn" type="button" class="btn btn-outline-primary btn-sm btn-right-corner">
       <span class="glyphicon glyphicon-log-out"></span> Log out
     </button>
-    <!-- Send URL FORM-->
+  
     <main class="sendUrlPage">
-      <h1>send Url</h1>
+      <h1>Send URL</h1>
+      <!-- Send URL Form -->
       <form id="sendUrlForm">
-        <label for="urlField" class="form-label">Enter a URL:</label>
-        <input type="url" class="form-control" name="urlField" id="urlField" placeholder="https://www._____.com"
-          size="30" required /><br />
-        <button type="submit" class="button">is Safe?</button>
+        <div class="form-group mb-3">
+          <label for="urlField" class="form-label">Enter a URL:</label>
+          <input type="url" class="form-control" id="urlField" placeholder="https://www.example.com" required>
+          <div class="invalid-feedback">Please enter a valid URL.</div>
+        </div>
+        <button type="submit" class="btn btn-outline-primary mt-2">Is Safe?</button>
       </form>
+  
+      <!-- Subscribed Whitelist URLs -->
+      <div id="whitelistUrlsContainer" class="mt-4">
+        <h2>Subscribed Whitelist URLs:</h2>
+        <ul id="whitelistUrls" class="list-group">
+          <!-- URLs will be populated here -->
+        </ul>
+      </div>
     </main>
   </div>
+
+
+  <!-- Notification -->
   <div id="notification" class="notification hidden">
     <span id="notification-message"></span>
-    <button id="close-notification-button" class="button">Close</button>
+    <button id="close-notification-button" class="btn btn-outline-primary btn-sm mt-2">Close</button>
   </div>
+
+  <!-- Backdrop -->
   <div id="backdrop" class="backdrop hidden"></div>
 
+  <!-- Bootstrap JS and dependencies -->
   <script src="popup.js"></script>
+  <script src="./js/query-3.6.0.min.js"></script>
+  <script src="./js/popper.min.js"></script>
+  <script src="./js/bootstrap.min.js"></script>
+  <script src="./js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

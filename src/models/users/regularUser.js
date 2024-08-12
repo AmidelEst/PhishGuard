@@ -6,10 +6,11 @@ const regularUserSchema = new Schema(
 	{
 		email: { type: String, required: true, unique: true },
 		password: { type: String, required: true },
-		role: { type: String, enum: ['user', 'admin'], default: 'user' },
-		subscribedAdmin: {
+		role: { type: String, default: 'user' },
+		subscribedWhitelist: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'AdminUser',required: true,
+			ref: 'Whitelists',
+			required: true,
 		},
 		securityLevel: {
 			type: String,
