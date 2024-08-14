@@ -31,13 +31,10 @@ h1 {
 	margin-bottom: 3vh;
 }
 
-/* Form Control */
-.form-control {
-	border-radius: 3px;
-	padding: 0 15px;
-	border: 1px solid #d1d1d1;
-}
-
+/* .mainNavButtons{
+	height: 100%;
+	position: relative;
+} */
 /* Buttons */
 .btn {
 	transition-duration: 0.4s;
@@ -66,21 +63,67 @@ h1 {
 	font-size: 18px;
 	text-align: center;
 }
+/*--------------- form related-------------------------*/
+.form-group {
+    position: relative; /* Ensure the form-group is the parent element for absolute positioning */
+}
 
-/* Invalid Input Styling */
-.is-invalid {
-	border-color: #d93025;
+/* Form Control */
+.form-control {
+	border-radius: 3px;
+	padding: 0 15px;
+	border: 1px solid #d1d1d1;
+}
+.invalid-feedback {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 100%; /* Position it below the input */
+    right: 0;
+    width: max-content; /* Adjust width to content */
+    padding: 8px;
+    font-size: 12px;
+    background-color: #d93025; /* Red background for error */
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    white-space: nowrap; /* Prevent line breaks */
+}
+/* Arrow pointing to the input */
+.invalid-feedback::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    right: 10px; /* Adjust position according to your design */
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent #d93025 transparent;
+}
+.invalid-feedback.above::before {
+    top: auto;
+    bottom: -6px;
+    border-color: #d93025 transparent transparent transparent;
 }
 
 /* Error Messages */
-.invalid-feedback {
+/* .invalid-feedback {
 	background-color: rgba(255, 0, 0, 0.8);
 	color: #fff;
 	padding: 5px;
 	border-radius: 5px;
-	font-size: 12px;
+	font-size: 12pt;
 	transform: translateX(70%) translateY(5%);
+	max-width: fit-content;;
 	white-space: nowrap;
+} */
+ 
+
+/* Invalid Input Styling */
+/* .is-invalid {
+	border-color: #d93025;
+} */
+.is-invalid + .invalid-feedback {
+    display: block;
 }
 
 /* Notification Styling */
@@ -139,4 +182,30 @@ h1 {
 
 #passwordHelpBlock {
 	color: #d1d1d1;
+}
+
+/* scrollable whitelist */
+h2 {
+    margin-top: 10px; /* Adjust the value as needed */
+}
+
+/* Scrollable whitelist container */
+#whitelistUrlsContainer {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 3%;
+}
+
+/* Optional: Customize scrollbar appearance */
+#whitelistUrlsContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+#whitelistUrlsContainer::-webkit-scrollbar-thumb {
+    background-color: #cccccc;
+    border-radius: 4px;
+}
+
+#whitelistUrlsContainer::-webkit-scrollbar-thumb:hover {
+    background-color: #aaaaaa;
 }

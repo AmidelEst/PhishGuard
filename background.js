@@ -4,12 +4,12 @@ let apiUrl = 'http://localhost:3001';
 
 // Listen to Messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log(request);
+	console.log(request.message);
 	switch (request.message) {
+		// --onStart--
 		case 'onStart':
 			checkAuthToken(sendResponse);
 			return true;
-
 		// 0) register
 		case 'register':
 			handleRegistration(request.payload)
@@ -19,7 +19,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					sendResponse({ success: false, message: 'Registration failed' });
 				});
 			return true;
-
 		// 1) login
 		case 'login':
 			handleLogin(request.payload)
@@ -29,29 +28,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					sendResponse({ success: false, message: 'Login failed' });
 				});
 			return true;
-
 		// 2) logOut
 		case 'logOut':
 			handleLogOut(sendResponse);
 			return true;
-
+		// regularUser function -  checkUrl
 		case 'checkUrl':
 			handleCheckUrl(request.payload, sendResponse);
 			return true;
-
+		// No tokens needed
 		case 'fetchAdmins':
 			fetchAdmins(sendResponse);
 			return true;
-
+		// No tokens needed
 		case 'fetchAdminsWhitelists':
 			fetchAdminsWhitelists(request.adminName, sendResponse);
 			return true;
-
+		// regular token action
+		case 'fetchSubscribedWhitelist':
+			fetchSubscribedWhitelist(request.subscribedWhitelistId, sendResponse);
+			return true;
 		default:
 			sendResponse({ success: false, message: 'Unhandled request type' });
 			return true;
 	}
-
 	return true; // Keep message channel open for asynchronous response
 });
 
@@ -69,7 +69,6 @@ function checkAuthToken(sendResponse) {
 				}
 			});
 		}
-
 		if (result.authToken) {
 			sendResponse({ success: true, message: 'Token found' });
 		} else {
@@ -77,7 +76,6 @@ function checkAuthToken(sendResponse) {
 		}
 	});
 }
-
 // 0) handle register
 function handleRegistration(user_info) {
 	return fetch(`${apiUrl}/user/register`, {
@@ -90,7 +88,6 @@ function handleRegistration(user_info) {
 			return { success: data.success, message: data.message };
 		});
 }
-
 // 1) handle Login
 function handleLogin(userCredentials) {
 	return fetch(`${apiUrl}/user/login`, {
@@ -104,19 +101,21 @@ function handleLogin(userCredentials) {
 				throw new Error(data.message);
 			}
 			return new Promise((resolve, reject) => {
+				// Store the token, user status, and subscribedWhitelistId in local storage
 				chrome.storage.local.set(
 					{
 						userStatus: 'loggedIn',
 						authToken: data.token,
-						subscribedWhitelist: data.subscribedWhitelist,
+						subscribedWhitelistId: data.subscribedWhitelistId, // Store the whitelist ID
 					},
 					() => {
 						if (chrome.runtime.lastError) {
-							console.error(
-								'Error storing auth token:',
-								chrome.runtime.lastError
-							);
 							reject(new Error(chrome.runtime.lastError));
+							sendResponse({
+								success: false,
+								message: chrome.runtime.lastError,
+							});
+							
 						} else {
 							resolve({
 								success: true,
@@ -131,39 +130,48 @@ function handleLogin(userCredentials) {
 			return { success: false, message: error.message };
 		});
 }
-
 // 2) handle LogOut
 function handleLogOut(sendResponse) {
-	chrome.storage.local.remove(['authToken', 'userStatus'], () => {
-		if (chrome.runtime.lastError) {
-			console.error(
-				'Error clearing auth token or user status:',
-				chrome.runtime.lastError
-			);
-			sendResponse({ success: false, message: chrome.runtime.lastError });
-		} else {
-			fetch(`${apiUrl}/user/logout`, {
-				method: 'POST',
-			})
-				.then((res) => res.json())
-				.then((data) => {
-					if (data.success) {
-						// Optionally set userStatus to 'loggedOut' if you want to keep track of it
-						chrome.storage.local.set({ userStatus: 'loggedOut' }, () => {
-							sendResponse({ success: true, message: data.message });
+	// Remove the token and user status from local storage
+	chrome.storage.local.get('authToken', (result) => {
+		const token = result.authToken;
+
+		// Proceed if the token exists
+		if (token) {
+			chrome.storage.local.remove(['authToken', 'userStatus'], () => {
+				if (chrome.runtime.lastError) {
+					sendResponse({ success: false, message: chrome.runtime.lastError });
+				} else {
+					// Send the token to the server for blacklisting
+					fetch(`${apiUrl}/user/logout`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${token}`, // Send the token to identify the session
+						},
+					})
+						.then((res) => res.json())
+						.then((data) => {
+							if (data.success) {
+								// Optionally set userStatus to 'loggedOut' to keep track
+								chrome.storage.local.set({ userStatus: 'loggedOut' }, () => {
+									sendResponse({ success: true, message: data.message });
+								});
+							} else {
+								sendResponse({ success: false, message: data.message });
+							}
+						})
+						.catch((error) => {
+							sendResponse({ success: false, message: error.message });
 						});
-					} else {
-						sendResponse({ success: false, message: data.message });
-					}
-				})
-				.catch((error) => {
-					sendResponse({ success: false, message: error.message });
-				});
+				}
+			});
+		} else {
+			sendResponse({ success: false, message: 'No token found in storage' });
 		}
 	});
 }
-
-//
+// regularUser) checkUrl
 function handleCheckUrl(url_info, sendResponse) {
 	chrome.storage.local.get('authToken', (result) => {
 		if (result.authToken) {
@@ -189,8 +197,7 @@ function handleCheckUrl(url_info, sendResponse) {
 
 	return true;
 }
-
-// admins list
+// PUBLIC - at registerPage-GET admins
 function fetchAdmins(sendResponse) {
 	fetch(`${apiUrl}/user/admin-list`, {
 		method: 'GET',
@@ -209,7 +216,7 @@ function fetchAdmins(sendResponse) {
 			sendResponse({ success: false, message: error.message });
 		});
 }
-// Fetch Admin's Whitelists
+// PUBLIC - at registerPage-GET admin's Whitelists
 function fetchAdminsWhitelists(adminName, sendResponse) {
 	fetch(`${apiUrl}/user/adminsWhitelists?adminName=${encodeURIComponent(adminName)}`, {
 		method: 'GET',
@@ -229,27 +236,36 @@ function fetchAdminsWhitelists(adminName, sendResponse) {
 			sendResponse({ success: false, message: error.message });
 		});
 }
+//regularUser TOKEN - after loginPage or at popup press
+function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
+	if (!subscribedWhitelistId) {
+		sendResponse({ success: false, message: 'No whitelist ID provided.' });
+		return;
+	}
+	chrome.storage.local.get('authToken', (result) => {
+		if (!result.authToken) {
+			sendResponse({ success: false, message: 'No token available' });
+			return;
+		}
+		const token = result.authToken;
+		
+		fetch(`${apiUrl}/user/whitelist/${subscribedWhitelistId}/monitored-sites`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+			.then((res) => res.json())
+			.then((whitelistData) => {
+				if (whitelistData.success) {
+					const monitoredSites = whitelistData.monitoredSites; // Extract URLs
 
-function fetchUsersSubscribedWhitelist(subscribedWhitelistId, token, sendResponse) {
-	fetch(`${apiUrl}/user/whitelist/${subscribedWhitelistId}`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`,
-		},
-	})
-		.then((res) => res.json())
-		.then((whitelistData) => {
-			if (whitelistData.success) {
-				// Store the subscribed whitelist data
-				chrome.storage.local.set(
-					{
-						subscribedWhitelist: whitelistData.whitelist,
-					},
-					() => {
+					// Store the monitored sites data
+					chrome.storage.local.set({ subscribedWhitelist: monitoredSites }, () => {
 						if (chrome.runtime.lastError) {
 							console.error(
-								'Error storing subscribed whitelist:',
+								'Error storing monitored sites:',
 								chrome.runtime.lastError
 							);
 							sendResponse({
@@ -257,23 +273,22 @@ function fetchUsersSubscribedWhitelist(subscribedWhitelistId, token, sendRespons
 								message: chrome.runtime.lastError,
 							});
 						} else {
-							sendResponse({
-								success: true,
-								message: 'Login successful',
-							});
+							sendResponse({ success: true, monitoredSites: monitoredSites });
 						}
-					}
-				);
-			} else {
-				console.error('Failed to fetch whitelist:', whitelistData.message);
-				sendResponse({
-					success: false,
-					message: 'Failed to fetch subscribed whitelist.',
-				});
-			}
-		})
-		.catch((error) => {
-			console.error('Error fetching whitelist:', error);
-			sendResponse({ success: false, message: 'Error fetching subscribed whitelist.' });
-		});
+					});
+				} else {
+					console.error('Failed to fetch monitored sites:', whitelistData.message);
+					sendResponse({
+						success: false,
+						message: 'Failed to fetch monitored sites.',
+					});
+				}
+			})
+			.catch((error) => {
+				console.error('Error fetching monitored sites:', error);
+				sendResponse({ success: false, message: 'Error fetching monitored sites.' });
+			});
+	});
+
+	return true; // Keeps the message channel open for the async response
 }

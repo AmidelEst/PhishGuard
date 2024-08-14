@@ -1,12 +1,11 @@
 // server.js
-
 const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
-
+const redisClient = require('./src/utils/redisClient');
 dotenv.config();
 
 const PORT = process.env.PORT || 3001;

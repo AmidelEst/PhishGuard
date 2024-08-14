@@ -7,6 +7,7 @@
   <title>Anti-Phishing Extension</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="bootstrap.min.css">
+  <!-- OUR CSS -->
   <link rel="stylesheet" href="popup.css">
 </head>
 
@@ -14,8 +15,13 @@
   <!-- Main Page -->
   <div id="mainPage" class="container text-center">
     <h1>Anti-Phishing Extension</h1>
-    <button id="goToRegister" class="btn btn-outline-primary">Register</button>
-    <button id="goToLogin" class="btn btn-outline-primary">Log In</button>
+    <!-- GOTO Register -->
+    <div class="row justify-content-">
+      <button id="goToRegister" class="btn btn-outline-primary col col-lg-2">Register</button>
+      
+      <!-- GOTO Login -->
+      <button id="goToLogin" class="btn btn-outline-primary col col-lg-2">Log In</button>
+    </div>
   </div>
 
   <!-- Registration Page -->
@@ -44,7 +50,22 @@
         <div class="form-group mb-3">
           <label for="registerPassword" class="form-label">Password</label>
           <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
-          <div class="invalid-feedback">Password must be 8-20 characters long.</div>
+
+
+          <!-- Password Feedback -->
+
+          <div id="passwordLengthFeedback" class="invalid-feedback">Password must be between 8-20
+            characters.
+          </div>
+          <div id="passwordLetterNumberFeedback" class="invalid-feedback">Password must contain
+            both letters and
+            numbers.</div>
+          <div id="passwordSpecialCharFeedback" class="invalid-feedback">Password must contain at
+            least one
+            special character.</div>
+          <div id="passwordNoSpaceEmojiFeedback" class="invalid-feedback">Password cannot contain
+            spaces or
+            emojis.</div>
         </div>
 
         <!-- Confirm Password Input -->
@@ -132,11 +153,11 @@
 
   <!-- Send URL Page -->
   <div id="sendUrlPage" class="container hidden">
-    <!-- Log Out Button -->
+    <!-- Log-Out Button -->
     <button id="logOutBtn" type="button" class="btn btn-outline-primary btn-sm btn-right-corner">
       <span class="glyphicon glyphicon-log-out"></span> Log out
     </button>
-  
+
     <main class="sendUrlPage">
       <h1>Send URL</h1>
       <!-- Send URL Form -->
@@ -148,17 +169,18 @@
         </div>
         <button type="submit" class="btn btn-outline-primary mt-2">Is Safe?</button>
       </form>
-  
+
       <!-- Subscribed Whitelist URLs -->
-      <div id="whitelistUrlsContainer" class="mt-4">
+      <div>
         <h2>Subscribed Whitelist URLs:</h2>
-        <ul id="whitelistUrls" class="list-group">
-          <!-- URLs will be populated here -->
-        </ul>
+        <div id="whitelistUrlsContainer" class="mt-4">
+          <ul id="whitelistUrls" class="list-group">
+            <!-- URLs will be populated here -->
+          </ul>
+        </div>
       </div>
     </main>
   </div>
-
 
   <!-- Notification -->
   <div id="notification" class="notification hidden">
@@ -169,12 +191,12 @@
   <!-- Backdrop -->
   <div id="backdrop" class="backdrop hidden"></div>
 
+  <script type="module" src="popup.js"></script>
   <!-- Bootstrap JS and dependencies -->
-  <script src="popup.js"></script>
-  <script src="./js/query-3.6.0.min.js"></script>
-  <script src="./js/popper.min.js"></script>
-  <script src="./js/bootstrap.min.js"></script>
-  <script src="./js/bootstrap.bundle.min.js"></script>
+  <script src="./bootstrapjs/query-3.6.0.min.js"></script>
+  <script src="./bootstrapjs/popper.min.js"></script>
+  <script src="./bootstrapjs/bootstrap.bundle.min.js"></script>
+  <script src="./bootstrapjs/bootstrap.min.js"></script>
 </body>
 
 </html>
