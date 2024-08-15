@@ -16,7 +16,6 @@ import { showNotification, closeNotification } from '../domHandlers/notification
 export const setupEventListeners = () => {
 	// Close notification
 	getElement('close-notification-button').addEventListener('click', closeNotification);
-
 	// Admin selection
 	getElement('adminDropdown').addEventListener('change', (e) => {
 		const selectedAdminName = e.target.value;
@@ -26,7 +25,6 @@ export const setupEventListeners = () => {
 			console.error('Admin name is not defined.');
 		}
 	});
-
 	// Navigation between pages
 	getElement('goToLogin').addEventListener('click', () => navigateToPage('loginPage'));
 	getElement('goToRegister').addEventListener('click', () => {
@@ -124,9 +122,6 @@ export const setupEventListeners = () => {
 					.map(extractBaseUrl)
 					.filter(Boolean);
 
-				console.log('subscribedWhitelist:', subscribedWhitelistBaseUrls);
-				console.log('🚀 baseUrl:', urlAddress);
-
 				// Check if the base URL exactly matches any whitelist URL
 				const isInWhitelist = subscribedWhitelistBaseUrls.some(
 					(whitelistUrl) => whitelistUrl === urlAddress
@@ -137,7 +132,18 @@ export const setupEventListeners = () => {
 					showNotification('URL is not in your subscribed whitelist.', false);
 					return;
 				}
-				
+				// Fetch and compare SSL certificates
+				const sslCert = await fetchSSLCertificate(baseUrl);
+				const isCertValid = await compareCertificates(baseUrl, sslCert);
+
+				if (!isCertValid) {
+					showNotification(
+						'SSL certificate does not match the stored certificate.',
+						false
+					);
+					return;
+				}
+
 				// ONLY When we are sending the URL to our server its important to add the safety mechanism
 				if (!urlAddress.startsWith('http://') && !urlAddress.startsWith('https://')) {
 					urlAddress = `https://${urlAddress}`;

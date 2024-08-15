@@ -1,27 +1,38 @@
-// src/middleware/roleMiddleware.js
+// src\features\users\middleware\roleMiddleware.js
 
 const { verifyToken } = require('../utils/auth/authUtils');
 
 const roleMiddleware = (roles) => {
-	return (req, res, next) => {
-		const token = req.headers.authorization?.split(' ')[1];
-		if (!token)
-			return res
-				.status(401)
-				.json({ success: false, message: 'Access Denied. No Token Provided.' });
+	return async (req, res, next) => {
+		try {
+			const token = req.headers.authorization?.split(' ')[1];
+			if (!token) {
+				return res
+					.status(401)
+					.json({ success: false, message: 'Access Denied. No Token Provided.' });
+			}
 
-		const user = verifyToken(token);
-		if (!user) return res.status(403).json({ success: false, message: 'Invalid token.' });
+			// Await the token verification (handle async)
+			const user = await verifyToken(token);
 
-		if (!roles.includes(user.role)) {
-			return res
-				.status(403)
-				.json({ success: false, message: 'Access Denied. Insufficient Permissions.' });
+			// Ensure the user exists and has a valid role
+			if (!user || !roles.includes(user.role)) {
+				return res
+					.status(403)
+					.json({
+						success: false,
+						message: 'Access Denied. Insufficient Permissions.',
+					});
+			}
+
+			req.user = user; // Attach the user object to the request
+			next(); // Proceed to the next middleware
+		} catch (error) {
+			// Handle token errors (blacklisted, expired, etc.)
+			res.status(403).json({ success: false, message: error.message });
 		}
-
-		req.user = user; // Pass the user object to the next middleware
-		next(); // Proceed to the next middleware or route handler
 	};
 };
+
 
 module.exports = roleMiddleware;

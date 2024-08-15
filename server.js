@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
-// const redisClient = require('./src/utils/auth/redisClient');
+const redisClient = require('./src/features/users/utils/auth/redisClient');
 dotenv.config();
 
 const PORT = process.env.PORT || 3001;

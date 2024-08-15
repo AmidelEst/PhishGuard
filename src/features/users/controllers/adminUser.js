@@ -1,12 +1,20 @@
+// src\features\users\controllers\adminUser.js
 const express = require('express');
 const adminUserRouter = express.Router();
 const AdminUser = require('../models/adminUser');
 const Whitelist = require('../../sites/models/whitelist');
 const MonitoredSite = require('../../sites/models/monitoredSite');
+const {
+	storeCertificateForSite,fetchSSLCertificate,
+} = require('../../sites/utils/certificate/certificate');
 const { compressAndHashHTML } = require('../../sites/utils/cyber/urlToHash');
-const { generateToken } = require('../utils/auth/authUtils');
+
+const { generateToken, getTokenExpiration } = require('../utils/auth/authUtils');
 const roleMiddleware = require('../middleware/roleMiddleware');
+const redisClient = require('../utils/auth/redisClient');
+
 const bcrypt = require('bcrypt');
+
 
 // 0) register - adminUser
 adminUserRouter.post('/register', async (req, res) => {
@@ -56,8 +64,29 @@ adminUserRouter.post('/login', async (req, res) => {
 	}
 });
 // 2) logout - adminUser
-adminUserRouter.post('/logout', (req, res) => {
-	res.json({ success: true, message: 'Logged out successfully' });
+adminUserRouter.post('/logout', roleMiddleware(['admin']), async (req, res) => {
+	try {
+		const token = req.headers.authorization.split(' ')[1];
+
+		if (!token) {
+			return res.status(400).json({ success: false, message: 'No token provided.' });
+		}
+
+		const expiresIn = getTokenExpiration(token);
+
+		// Blacklist the token in Redis
+		await redisClient.set(
+			token,
+			'blacklisted',
+			'EX',
+			expiresIn - Math.floor(Date.now() / 1000)
+		);
+
+		res.json({ success: true, message: 'Successfully logged out and token blacklisted.' });
+	} catch (error) {
+		console.error('Error during logout:', error.message);
+		res.status(500).json({ success: false, message: 'Failed to log out.' });
+	}
 });
 // Create Whitelist
 adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, res) => {
@@ -128,6 +157,18 @@ adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (re
 				minHash: hashedResult.minHash,
 			});
 			await newMonitoredSite.save();
+
+			// Try to fetch and store the SSL certificate
+			try {
+				const certificate = await fetchSSLCertificate(hashedResult.url);
+				await storeCertificateForSite(newMonitoredSite._id, certificate); // Link the certificate to the site
+			} catch (error) {
+				console.error(
+					`Failed to fetch SSL certificate for ${siteName}:`,
+					error.message
+				);
+				errors.push({ siteName, message: 'Failed to fetch SSL certificate' });
+			}
 
 			// Add the site to the whitelist
 			whitelist.monitoredSites.push(newMonitoredSite._id);
