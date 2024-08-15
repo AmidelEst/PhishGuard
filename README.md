@@ -3,7 +3,7 @@
 ### Advanced Anti-Phishing Chrome Extension with Server-Backend Integration
 
 <p align="center">
-<img src="./public/images/cyber-security.png" alt="PhishGuard Logo" width="300"/>
+<img src="./public/images/cyber-security.png" alt="PhishGuard Logo" width="200" length="200" />
 </p>
 
 PhishGuard is an intelligent anti-phishing solution designed to protect users from malicious websites. It uses real-time detection methods, monitors user interactions, and employs server-side processing to ensure the highest level of security. Built as a Chrome extension, it seamlessly integrates with a Node.js and MongoDB backend.
