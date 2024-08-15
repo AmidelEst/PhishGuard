@@ -2,7 +2,7 @@
 
 ### Advanced Anti-Phishing Chrome Extension with Server-Backend Integration
 
-<p align="right">
+<p align="center">
 <img src="./public/images/cyber-security.png" alt="PhishGuard Logo" width="200" length="200" />
 </p>
 
