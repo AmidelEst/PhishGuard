@@ -1,8 +1,8 @@
 // src/utils/urlToHashContent.js
-const axios = require('axios'); 		//fetch static  pages
-const puppeteer = require('puppeteer'); //fetch dynamic pages
-const cheerio = require('cheerio');		//RUN over DOM by properties 
-const crypto = require('crypto');		// Utilize a hash function
+const fetch = require('node-fetch'); // fetch static pages
+const puppeteer = require('puppeteer'); // fetch dynamic pages
+const cheerio = require('cheerio'); // run over DOM by properties
+const crypto = require('crypto'); // utilize a hash function
 
 // removing URL fragments
 function normalizeUrl(url) {
@@ -15,16 +15,17 @@ function normalizeUrl(url) {
 		return null;
 	}
 }
-
-// Fetch HTML using Axios
-async function fetchHTMLWithAxios(url) {
+// Fetch HTML using node-fetch
+async function fetchHTMLWithFetch(url) {
 	try {
-		const response = await axios.get(url);
-		return response.data;
+		const response = await fetch(url);
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+		const html = await response.text();
+		return html;
 	} catch (error) {
-		console.error(
-			`\naxios error:in setting up request for URL: ${url},\nError: ${error.message}`
-		);
+		console.error(`Fetch error for URL: ${url}\nError: ${error.message}`);
 		return null;
 	}
 }
@@ -50,34 +51,32 @@ function extractContent(html, url) {
 	const $ = cheerio.load(html);
 	$('style').remove(); //* param effects score
 
-	// Extract script content with a reasonable length limit
 	$('script').each((i, elem) => {
 		const scriptContent = $(elem).html();
-		//* param effects score
 		const maxLength = 400; // Set a maximum length for script content
 		if (scriptContent.length > maxLength) {
-			$(elem).text(scriptContent.substring(0, maxLength) + '...'); // Truncate long scripts
+			$(elem).text(scriptContent.substring(0, maxLength) + '...');
 		}
 	});
 
 	const bodyText = $('body').text().replace(/\s+/g, ' ').trim().toLowerCase();
 	if (bodyText.length === 0) {
-		console.error(`\naxios error: No text content extracted for: ${url}`); // Log first 200 chars of HTML
+		console.error(`\nFetch error: No text content extracted for: ${url}`);
 		return null;
 	}
 
 	return bodyText;
 }
 
-// GLOBAL fetch function 
-//* try to first fetch HTML using Axios
-//! if Axios fails -> try fetch using Puppeteer
+// GLOBAL fetch function
+//* try to first fetch HTML using fetch
+//! if fetch fails -> try fetch using Puppeteer
 async function fetchHTML(url) {
-	const axiosHtml = await fetchHTMLWithAxios(url);
-	if (axiosHtml) {
-		const extractedContent = extractContent(axiosHtml, url);
+	const fetchHtml = await fetchHTMLWithFetch(url);
+	if (fetchHtml) {
+		const extractedContent = extractContent(fetchHtml, url);
 		if (extractedContent) {
-			return axiosHtml;
+			return fetchHtml;
 		} else {
 			console.log(`Rolling back Puppeteer for URL: ${url}.\n`);
 		}
@@ -87,7 +86,7 @@ async function fetchHTML(url) {
 	return fetchHTMLWithPuppeteer(url);
 }
 
-// Normalize DOM's text by removing: punctuation and extra spaces
+// Normalize DOM's text by removing punctuation and extra spaces
 function normalizeText(text) {
 	return text
 		.toLowerCase()
@@ -98,27 +97,24 @@ function normalizeText(text) {
 
 // Generate shingles from text
 function getShingles(text, shingleSize = 3) {
-	//* param effects score
 	const shingles = new Set();
 	for (let i = 0; i <= text.length - shingleSize; i++) {
 		shingles.add(text.substring(i, i + shingleSize));
 	}
-	// console.log(shingles);
 	return Array.from(shingles);
 }
 
 // Generate MinHash signatures from shingles
-function generateMinHash(shingles, numHashes = 200) { //* param effects score
+function generateMinHash(shingles, numHashes = 200) {
 	return Array.from({ length: numHashes }, (_, i) => {
-		
 		return shingles.reduce((minHash, shingle) => {
 			const hashValue = parseInt(
 				crypto
 					.createHash('sha256')
 					.update(shingle + i)
 					.digest('hex')
-					.substring(0, 6), //* param effects score
-				16 //* param effects score
+					.substring(0, 6),
+				16
 			);
 			return Math.min(minHash, hashValue);
 		}, Infinity);
@@ -136,7 +132,7 @@ async function compressAndHashHTML(url) {
 		return null;
 	}
 
-	const content = extractContent(html);
+	const content = extractContent(html, url);
 	if (!content) {
 		console.error(`Failed to extract content from HTML for URL: ${url}`);
 		return null;
@@ -160,8 +156,7 @@ async function compressAndHashHTML(url) {
 		return null;
 	}
 
-	// console.log(`URL: ${url}, MinHash: ${minHash}`);
-	return { url,minHash, content: normalizedContent, shingles };
+	return { url, minHash, content: normalizedContent, shingles };
 }
 
 module.exports = {

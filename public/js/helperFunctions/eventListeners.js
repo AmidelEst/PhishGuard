@@ -1,13 +1,15 @@
-//  public/js/utils/eventListeners.js
+//  public/js/helperFunctions/eventListeners.js
 import { getElement } from '../domHandlers/getElement.js';
 import { navigateToPage } from '../domHandlers/navigation.js';
 import { validatePassword } from '../domHandlers/validation.js';
 import {
 	loginUser,
-	getSubscribedWhitelistId,
+	fetchSubscribedWhitelistId,
 	fetchAndPopulateWhitelistUrls,
 	fetchAndPopulateAdmins,
 	fetchAndPopulateAdminsWhitelists,
+	getUserSubscribedWhitelist,
+	extractBaseUrl,
 } from './api.js';
 import { showNotification, closeNotification } from '../domHandlers/notification.js';
 
@@ -37,7 +39,6 @@ export const setupEventListeners = () => {
 	getElement('goBackBtnFromLogin').addEventListener('click', () =>
 		navigateToPage('mainPage')
 	);
-
 	// Registration form
 	const registerForm = getElement('registerForm');
 	if (registerForm) {
@@ -84,7 +85,6 @@ export const setupEventListeners = () => {
 
 		getElement('registerPassword').addEventListener('input', validatePassword);
 	}
-
 	// Login form
 	const loginForm = getElement('loginForm');
 	if (loginForm) {
@@ -99,7 +99,7 @@ export const setupEventListeners = () => {
 				if (response.success) {
 					navigateToPage('sendUrlPage');
 					// Retrieve the subscribedWhitelistId and fetch the corresponding whitelist
-					getSubscribedWhitelistId((subscribedWhitelistId) => {
+					fetchSubscribedWhitelistId((subscribedWhitelistId) => {
 						fetchAndPopulateWhitelistUrls(subscribedWhitelistId);
 					});
 				} else {
@@ -108,20 +108,55 @@ export const setupEventListeners = () => {
 			});
 		});
 	}
-
 	// Send URL form
 	const sendUrlForm = getElement('sendUrlForm');
 	if (sendUrlForm) {
-		sendUrlForm.addEventListener('submit', (e) => {
+		sendUrlForm.addEventListener('submit', async (e) => {
 			e.preventDefault();
-			const urlAddress = getElement('urlField').value;
+			// get submitted URL
+			let urlAddress = getElement('urlField').value.trim();
+			// Get the user's subscribed whitelist URLs asynchronously
+			try {
+				const subscribedWhitelist = await getUserSubscribedWhitelist();
 
-			chrome.runtime.sendMessage(
-				{ message: 'checkUrl', payload: { url: urlAddress } },
-				(response) => {
-					showNotification(response.message, response.success);
+				// Extract and log the base URLs from the whitelist
+				const subscribedWhitelistBaseUrls = subscribedWhitelist
+					.map(extractBaseUrl)
+					.filter(Boolean);
+
+				console.log('subscribedWhitelist:', subscribedWhitelistBaseUrls);
+				console.log('🚀 baseUrl:', urlAddress);
+
+				// Check if the base URL exactly matches any whitelist URL
+				const isInWhitelist = subscribedWhitelistBaseUrls.some(
+					(whitelistUrl) => whitelistUrl === urlAddress
+				);
+
+				// If the URL is NOT in the whitelist, show a notification and stop further processing
+				if (!isInWhitelist) {
+					showNotification('URL is not in your subscribed whitelist.', false);
+					return;
 				}
-			);
+				
+				// ONLY When we are sending the URL to our server its important to add the safety mechanism
+				if (!urlAddress.startsWith('http://') && !urlAddress.startsWith('https://')) {
+					urlAddress = `https://${urlAddress}`;
+				}
+
+				// If URL IS in the whitelist, proceed with sending it for further processing
+				chrome.runtime.sendMessage(
+					{ message: 'checkUrl', payload: { url: urlAddress } },
+					(response) => {
+						showNotification(response.message, response.success);
+					}
+				);
+			} catch (error) {
+				console.error('Error checking URL against whitelist:', error);
+				showNotification(
+					'There was an error processing your request. Please try again.',
+					false
+				);
+			}
 		});
 	}
 

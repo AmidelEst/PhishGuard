@@ -1,7 +1,6 @@
 // src\features\sites\controllers\sites.js
 const express = require('express');
 const router = express.Router();
-
 const {
 	fetchAndHashSubmittedURL,
 	fetchWhitelistedSites,

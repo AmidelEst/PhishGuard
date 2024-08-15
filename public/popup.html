@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Anti-Phishing Extension</title>
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="./css/bootstrap.min.css">
+  <link rel="stylesheet" href="./vendors/css/bootstrap.min.css">
   <!-- OUR CSS -->
   <link rel="stylesheet" href="./css/popup.css">
 </head>
@@ -164,7 +164,7 @@
       <form id="sendUrlForm">
         <div class="form-group mb-3">
           <label for="urlField" class="form-label">Enter a URL:</label>
-          <input type="url" class="form-control" id="urlField" placeholder="https://www.example.com" required>
+          <input type="text" class="form-control" id="urlField" placeholder="https://www.example.com" required>
           <div class="invalid-feedback">Please enter a valid URL.</div>
         </div>
         <button type="submit" class="btn btn-outline-primary mt-2">Is Safe?</button>
@@ -193,9 +193,9 @@
 
   <script type="module" src="popup.js"></script>
   <!-- Bootstrap JS and dependencies -->
-  <script src="./js/bootstrap/query-3.6.0.min.js"></script>
-  <script src="./js/bootstrap/popper.min.js"></script>
-  <script src="./js/bootstrap/bootstrap.bundle.min.js"></script>
-  <script src="./js/bootstrap/bootstrap.min.js"></script>
+  <script src="./vendors/js/query-3.6.0.min.js"></script>
+  <script src="./vendors/js/popper.min.js"></script>
+  <script src="./vendors/js/bootstrap.bundle.min.js"></script>
+  <script src="./vendors/js/bootstrap.min.js"></script>
 </body>
 </html>

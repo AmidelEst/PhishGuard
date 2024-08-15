@@ -1,4 +1,5 @@
 // background.js
+
 let apiUrl = 'http://localhost:3001';
 
 // Listen to Messages

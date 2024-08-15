@@ -1,4 +1,4 @@
-// public/js/utils/api.js
+// public/js/helperFunctions/api.js
 import { showNotification } from '../domHandlers/notification.js';
 import {
 	populateAdminDropdown,
@@ -6,7 +6,7 @@ import {
 	populateWhitelistUrls,
 } from '../domHandlers/dropdown.js';
 
-//at registerPage-GET admins
+//NO TOKEN - at registerPage-GET admins
 export const fetchAndPopulateAdmins = () => {
 	chrome.runtime.sendMessage({ message: 'fetchAdmins' }, (response) => {
 		if (response.success) {
@@ -16,7 +16,7 @@ export const fetchAndPopulateAdmins = () => {
 		}
 	});
 };
-//at registerPage-GET admin's Whitelists
+//NO TOKEN - at registerPage-GET admin's Whitelists
 export const fetchAndPopulateAdminsWhitelists = (selectedAdminName) => {
 	chrome.runtime.sendMessage(
 		{ message: 'fetchAdminsWhitelists', adminName: selectedAdminName },
@@ -29,17 +29,15 @@ export const fetchAndPopulateAdminsWhitelists = (selectedAdminName) => {
 		}
 	);
 };
-
-// Function to handle the login process
+// login process
 export const loginUser = (email, password, callback) => {
     const payload = { email, password };
     chrome.runtime.sendMessage({ message: 'login', payload }, (response) => {
         callback(response);
     });
 };
-
-// Function to retrieve the subscribedWhitelistId from storage
-export const getSubscribedWhitelistId = (callback) => {
+// retrieve the subscribedWhitelistId 
+export const fetchSubscribedWhitelistId = (callback) => {
     chrome.storage.local.get('subscribedWhitelistId', (result) => {
         if (result.subscribedWhitelistId) {
             callback(result.subscribedWhitelistId);
@@ -55,10 +53,31 @@ export const fetchAndPopulateWhitelistUrls = (subscribedWhitelistId) => {
 		{ message: 'fetchSubscribedWhitelist', subscribedWhitelistId },
 		(response) => {
 			if (response.success) {
-				populateWhitelistUrls(response.monitoredSites); 
+				// Extract base URLs from the full URLs and filter out any invalid ones
+				const baseUrls = response.monitoredSites.map(extractBaseUrl).filter(Boolean);
+				populateWhitelistUrls(baseUrls);
 			} else {
 				showNotification('Failed to fetch monitored sites.', false);
 			}
 		}
 	);
+};
+// retrieving whitelist from storage
+export const getUserSubscribedWhitelist = async () => {
+	return await chrome.storage.local
+		.get('subscribedWhitelist')
+		.then((result) => result.subscribedWhitelist || [])
+		.catch((error) => {
+			console.error('Error fetching whitelist:', error);
+			return [];
+		});
+};
+//
+export const extractBaseUrl = (url) => {
+	try {
+		const { hostname } = new URL(url);
+		return hostname;
+	} catch (e) {
+		return null;
+	}
 };
