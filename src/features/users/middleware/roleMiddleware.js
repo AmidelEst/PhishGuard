@@ -1,6 +1,6 @@
 // src/middleware/roleMiddleware.js
 
-const { verifyToken } = require('../utils/authUtils');
+const { verifyToken } = require('../utils/auth/authUtils');
 
 const roleMiddleware = (roles) => {
 	return (req, res, next) => {

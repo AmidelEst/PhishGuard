@@ -1,4 +1,4 @@
-// src/controllers/sites.js
+// src\features\sites\controllers\sites.js
 const express = require('express');
 const router = express.Router();
 
@@ -6,7 +6,7 @@ const {
 	fetchAndHashSubmittedURL,
 	fetchWhitelistedSites,
 	compareMinHashes,
-} = require('../utils/similarityScoring');
+} = require('../utils/cyber/similarityScoring');
 
 router.post('/check_url', async (req, res) => {
 	const { url } = req.body;

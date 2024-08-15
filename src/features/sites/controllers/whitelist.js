@@ -1,9 +1,8 @@
-// src/utils/whitelist.js
-
+// src\features\sites\controllers\whitelist.js
 const fs = require('fs');
 const path = require('path');
-const MonitoredSite = require('../models/sites/monitoredSite');
-const { compressAndHashHTML } = require('./urlToHash');
+const MonitoredSite = require('../');
+const { compressAndHashHTML } = require('./cyber/urlToHash');
 
 // Function to read whitelist URLs from JSON file
 function readWhitelistFromFile() {
@@ -35,7 +34,6 @@ async function addSiteToWhitelist(site) {
 			console.error(`Failed to compress and hash content for ${siteName}`);
 			return;
 		}
-
 		const { minHash, content } = result;
 		// Create instance of a monitor site in the database
 		await MonitoredSite.findOneAndUpdate(

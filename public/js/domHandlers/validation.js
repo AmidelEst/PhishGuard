@@ -1,5 +1,5 @@
-// utils/validation.js
-import { getElement } from './domUtils.js';
+//  public/js/domHandlers/validation.js
+import { getElement } from './getElement.js';
 
 const hideAllPasswordFeedback = () => {
 	const feedbackIds = [

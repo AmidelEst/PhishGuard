@@ -1,4 +1,5 @@
-import { getElement } from './domUtils.js';
+// public/js/domHandlers/notification.js
+import { getElement } from './getElement.js';
 
 export const showNotification = (message, isSuccess) => {
 	const notification = getElement('notification');

@@ -1,13 +1,13 @@
-// utils/api.js
-import { showNotification } from './notification.js';
+// public/js/utils/api.js
+import { showNotification } from '../domHandlers/notification.js';
 import {
 	populateAdminDropdown,
 	populateWhitelistsDropdown,
 	populateWhitelistUrls,
-} from './dropdown.js';
+} from '../domHandlers/dropdown.js';
 
 //at registerPage-GET admins
-export const fetchAdmins = () => {
+export const fetchAndPopulateAdmins = () => {
 	chrome.runtime.sendMessage({ message: 'fetchAdmins' }, (response) => {
 		if (response.success) {
 			populateAdminDropdown(response.admins);
@@ -17,7 +17,7 @@ export const fetchAdmins = () => {
 	});
 };
 //at registerPage-GET admin's Whitelists
-export const fetchAdminsWhitelists = (selectedAdminName) => {
+export const fetchAndPopulateAdminsWhitelists = (selectedAdminName) => {
 	chrome.runtime.sendMessage(
 		{ message: 'fetchAdminsWhitelists', adminName: selectedAdminName },
 		(response) => {
@@ -54,10 +54,8 @@ export const fetchAndPopulateWhitelistUrls = (subscribedWhitelistId) => {
     chrome.runtime.sendMessage(
 		{ message: 'fetchSubscribedWhitelist', subscribedWhitelistId },
 		(response) => {
-			console.log('fetchSubscribedWhitelist response:', response); // Log the entire response
 			if (response.success) {
-				console.log('pulateWhitelistUrls:', response.monitoredSites);
-				populateWhitelistUrls(response.monitoredSites); // Populate the list
+				populateWhitelistUrls(response.monitoredSites); 
 			} else {
 				showNotification('Failed to fetch monitored sites.', false);
 			}

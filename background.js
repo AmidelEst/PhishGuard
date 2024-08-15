@@ -1,5 +1,4 @@
 // background.js
-
 let apiUrl = 'http://localhost:3001';
 
 // Listen to Messages
@@ -76,127 +75,6 @@ function checkAuthToken(sendResponse) {
 		}
 	});
 }
-// 0) handle register
-function handleRegistration(user_info) {
-	return fetch(`${apiUrl}/user/register`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(user_info),
-	})
-		.then((res) => res.json())
-		.then((data) => {
-			return { success: data.success, message: data.message };
-		});
-}
-// 1) handle Login
-function handleLogin(userCredentials) {
-	return fetch(`${apiUrl}/user/login`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(userCredentials),
-	})
-		.then((res) => res.json())
-		.then((data) => {
-			if (!data.success) {
-				throw new Error(data.message);
-			}
-			return new Promise((resolve, reject) => {
-				// Store the token, user status, and subscribedWhitelistId in local storage
-				chrome.storage.local.set(
-					{
-						userStatus: 'loggedIn',
-						authToken: data.token,
-						subscribedWhitelistId: data.subscribedWhitelistId, // Store the whitelist ID
-					},
-					() => {
-						if (chrome.runtime.lastError) {
-							reject(new Error(chrome.runtime.lastError));
-							sendResponse({
-								success: false,
-								message: chrome.runtime.lastError,
-							});
-							
-						} else {
-							resolve({
-								success: true,
-								message: 'Login successful',
-							});
-						}
-					}
-				);
-			});
-		})
-		.catch((error) => {
-			return { success: false, message: error.message };
-		});
-}
-// 2) handle LogOut
-function handleLogOut(sendResponse) {
-	// Remove the token and user status from local storage
-	chrome.storage.local.get('authToken', (result) => {
-		const token = result.authToken;
-
-		// Proceed if the token exists
-		if (token) {
-			chrome.storage.local.remove(['authToken', 'userStatus'], () => {
-				if (chrome.runtime.lastError) {
-					sendResponse({ success: false, message: chrome.runtime.lastError });
-				} else {
-					// Send the token to the server for blacklisting
-					fetch(`${apiUrl}/user/logout`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${token}`, // Send the token to identify the session
-						},
-					})
-						.then((res) => res.json())
-						.then((data) => {
-							if (data.success) {
-								// Optionally set userStatus to 'loggedOut' to keep track
-								chrome.storage.local.set({ userStatus: 'loggedOut' }, () => {
-									sendResponse({ success: true, message: data.message });
-								});
-							} else {
-								sendResponse({ success: false, message: data.message });
-							}
-						})
-						.catch((error) => {
-							sendResponse({ success: false, message: error.message });
-						});
-				}
-			});
-		} else {
-			sendResponse({ success: false, message: 'No token found in storage' });
-		}
-	});
-}
-// regularUser) checkUrl
-function handleCheckUrl(url_info, sendResponse) {
-	chrome.storage.local.get('authToken', (result) => {
-		if (result.authToken) {
-			fetch(`${apiUrl}/url/check_url`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${result.authToken}`,
-				},
-				body: JSON.stringify(url_info),
-			})
-				.then((res) => res.json())
-				.then((data) => {
-					sendResponse({ success: data.success, message: data.message });
-				})
-				.catch((error) => {
-					sendResponse({ success: false, message: error.message });
-				});
-		} else {
-			sendResponse({ success: false, message: 'Not authenticated' });
-		}
-	});
-
-	return true;
-}
 // PUBLIC - at registerPage-GET admins
 function fetchAdmins(sendResponse) {
 	fetch(`${apiUrl}/user/admin-list`, {
@@ -236,7 +114,60 @@ function fetchAdminsWhitelists(adminName, sendResponse) {
 			sendResponse({ success: false, message: error.message });
 		});
 }
-//regularUser TOKEN - after loginPage or at popup press
+// 0) handle register
+function handleRegistration(user_info) {
+	return fetch(`${apiUrl}/user/register`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(user_info),
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			return { success: data.success, message: data.message };
+		});
+}
+// 1) handle Login
+function handleLogin(userCredentials) {
+	return fetch(`${apiUrl}/user/login`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(userCredentials),
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			if (!data.success) {
+				throw new Error(data.message);
+			}
+			return new Promise((resolve, reject) => {
+				// Store the token, user status, and subscribedWhitelistId in local storage
+				chrome.storage.local.set(
+					{
+						userStatus: 'loggedIn',
+						authToken: data.token,
+						subscribedWhitelistId: data.subscribedWhitelistId, // Store the whitelist ID
+					},
+					() => {
+						if (chrome.runtime.lastError) {
+							reject(new Error(chrome.runtime.lastError));
+							sendResponse({
+								success: false,
+								message: chrome.runtime.lastError,
+							});
+						} else {
+							resolve({
+								success: true,
+								message: 'Login successful',
+							});
+						}
+					}
+				);
+			});
+		})
+		.catch((error) => {
+			return { success: false, message: error.message };
+		});
+}
+// after loginPage or at popup press - regularUser TOKEN 
 function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 	if (!subscribedWhitelistId) {
 		sendResponse({ success: false, message: 'No whitelist ID provided.' });
@@ -248,7 +179,7 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 			return;
 		}
 		const token = result.authToken;
-		
+
 		fetch(`${apiUrl}/user/whitelist/${subscribedWhitelistId}/monitored-sites`, {
 			method: 'GET',
 			headers: {
@@ -292,3 +223,71 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 
 	return true; // Keeps the message channel open for the async response
 }
+// checkUrl- regularUser TOKEN 
+function handleCheckUrl(url_info, sendResponse) {
+	chrome.storage.local.get('authToken', (result) => {
+		if (result.authToken) {
+			fetch(`${apiUrl}/sites/check_url`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${result.authToken}`,
+				},
+				body: JSON.stringify(url_info),
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					sendResponse({ success: data.success, message: data.message });
+				})
+				.catch((error) => {
+					sendResponse({ success: false, message: error.message });
+				});
+		} else {
+			sendResponse({ success: false, message: 'Not authenticated' });
+		}
+	});
+
+	return true;
+}
+// 2) handle LogOut
+function handleLogOut(sendResponse) {
+	// Remove the token and user status from local storage
+	chrome.storage.local.get('authToken', (result) => {
+		const token = result.authToken;
+
+		// Proceed if the token exists
+		if (token) {
+			chrome.storage.local.remove(['authToken', 'userStatus'], () => {
+				if (chrome.runtime.lastError) {
+					sendResponse({ success: false, message: chrome.runtime.lastError });
+				} else {
+					// Send the token to the server for blacklisting
+					fetch(`${apiUrl}/user/logout`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${token}`, // Send the token to identify the session
+						},
+					})
+						.then((res) => res.json())
+						.then((data) => {
+							if (data.success) {
+								// Optionally set userStatus to 'loggedOut' to keep track
+								chrome.storage.local.set({ userStatus: 'loggedOut' }, () => {
+									sendResponse({ success: true, message: data.message });
+								});
+							} else {
+								sendResponse({ success: false, message: data.message });
+							}
+						})
+						.catch((error) => {
+							sendResponse({ success: false, message: error.message });
+						});
+				}
+			});
+		} else {
+			sendResponse({ success: false, message: 'No token found in storage' });
+		}
+	});
+}
+

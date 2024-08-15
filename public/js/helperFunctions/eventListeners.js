@@ -1,15 +1,15 @@
-// utils/eventListeners.js
-import { getElement } from './domUtils.js';
-import { navigateToPage } from './navigation.js';
-import { validatePassword } from './validation.js';
+//  public/js/utils/eventListeners.js
+import { getElement } from '../domHandlers/getElement.js';
+import { navigateToPage } from '../domHandlers/navigation.js';
+import { validatePassword } from '../domHandlers/validation.js';
 import {
 	loginUser,
 	getSubscribedWhitelistId,
 	fetchAndPopulateWhitelistUrls,
-	fetchAdmins,
-	fetchAdminsWhitelists,
+	fetchAndPopulateAdmins,
+	fetchAndPopulateAdminsWhitelists,
 } from './api.js';
-import { showNotification, closeNotification } from './notification.js';
+import { showNotification, closeNotification } from '../domHandlers/notification.js';
 
 export const setupEventListeners = () => {
 	// Close notification
@@ -19,7 +19,7 @@ export const setupEventListeners = () => {
 	getElement('adminDropdown').addEventListener('change', (e) => {
 		const selectedAdminName = e.target.value;
 		if (selectedAdminName) {
-			fetchAdminsWhitelists(selectedAdminName);
+			fetchAndPopulateAdminsWhitelists(selectedAdminName);
 		} else {
 			console.error('Admin name is not defined.');
 		}
@@ -29,7 +29,7 @@ export const setupEventListeners = () => {
 	getElement('goToLogin').addEventListener('click', () => navigateToPage('loginPage'));
 	getElement('goToRegister').addEventListener('click', () => {
 		navigateToPage('registerPage');
-		fetchAdmins();
+		fetchAndPopulateAdmins();
 	});
 	getElement('goBackBtnFromRegister').addEventListener('click', () =>
 		navigateToPage('mainPage')

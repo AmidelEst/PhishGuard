@@ -1,14 +1,12 @@
-// src/controllers/users/adminUser.js
-
 const express = require('express');
 const adminUserRouter = express.Router();
-const AdminUser = require('../../models/users/adminUser');
-const Whitelist = require('../../models/sites/whitelist');
-const MonitoredSite = require('../../models/sites/monitoredSite');
-const { compressAndHashHTML } = require('../../utils/urlToHash');
+const AdminUser = require('../models/adminUser');
+const Whitelist = require('../../sites/models/whitelist');
+const MonitoredSite = require('../../sites/models/monitoredSite');
+const { compressAndHashHTML } = require('../../sites/utils/cyber/urlToHash');
+const { generateToken } = require('../utils/auth/authUtils');
+const roleMiddleware = require('../middleware/roleMiddleware');
 const bcrypt = require('bcrypt');
-const { generateToken } = require('../../utils/authUtils');
-const roleMiddleware = require('../../middleware/roleMiddleware');
 
 // 0) register - adminUser
 adminUserRouter.post('/register', async (req, res) => {
@@ -32,7 +30,6 @@ adminUserRouter.post('/register', async (req, res) => {
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-
 // 1) login - adminUser
 adminUserRouter.post('/login', async (req, res) => {
 	try {
@@ -62,7 +59,6 @@ adminUserRouter.post('/login', async (req, res) => {
 adminUserRouter.post('/logout', (req, res) => {
 	res.json({ success: true, message: 'Logged out successfully' });
 });
-
 // Create Whitelist
 adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, res) => {
 	try {
@@ -89,7 +85,6 @@ adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, 
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-
 // Add Site to Whitelist
 adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (req, res) => {
 	try {

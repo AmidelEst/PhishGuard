@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
-const redisClient = require('./src/utils/redisClient');
+// const redisClient = require('./src/utils/auth/redisClient');
 dotenv.config();
 
 const PORT = process.env.PORT || 3001;
@@ -34,9 +34,9 @@ function startServer() {
 	app.use(express.urlencoded({ extended: true }));
 
 	// Import Controllers
-	const adminUserControllers = require('./src/controllers/users/adminUser');
-	const regularUserControllers = require('./src/controllers/users/regularUser');
-	const sitesControllers = require('./src/controllers/sites');
+	const adminUserControllers = require('./src/features/users/controllers/adminUser');
+	const regularUserControllers = require('./src/features/users/controllers/regularUser');
+	const sitesControllers = require('./src/features/sites/controllers/sites');
 
 	// Setup whitelist
 	// const setupWhitelist = require('./src/utils/whitelist');

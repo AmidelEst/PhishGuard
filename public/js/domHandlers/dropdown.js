@@ -1,5 +1,5 @@
-// utils/dropdown.js
-import { getElement } from './domUtils.js';
+// public/js/domHandlers/dropdown.js
+import { getElement } from './getElement.js';
 //at registerPage-populat admins
 export const populateAdminDropdown = (admins) => {
 	const adminDropdown = getElement('adminDropdown');

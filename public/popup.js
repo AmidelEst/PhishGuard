@@ -1,6 +1,7 @@
-import { navigateToPage } from './utils/navigation.js';
-import { setupEventListeners } from './utils/eventListeners.js';
-import { fetchAndPopulateWhitelistUrls } from './utils/api.js';
+// public/popup.js
+import { navigateToPage } from './js/domHandlers/navigation.js';
+import { setupEventListeners } from './js/helperFunctions/eventListeners.js';
+import { fetchAndPopulateWhitelistUrls } from './js/helperFunctions/api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 	setupEventListeners();

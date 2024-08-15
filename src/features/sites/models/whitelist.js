@@ -1,5 +1,4 @@
-// src/models/sites/whitelist.js
-
+// src\features\sites\models\whitelist.js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 

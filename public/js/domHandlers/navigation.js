@@ -1,5 +1,5 @@
-// utils/navigation.js
-import { getElement } from './domUtils.js';
+//  public/js/domHandlers/navigation.js
+import { getElement } from './getElement.js';
 
 export const navigateToPage = (pageId) => {
 	const pages = ['mainPage', 'registerPage', 'loginPage', 'sendUrlPage'];

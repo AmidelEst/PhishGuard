@@ -1,4 +1,4 @@
-// src/models/sites/monitoredSite.js
+// src\features\sites\models\monitoredSite.js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema; 
 

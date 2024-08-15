@@ -2,11 +2,15 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const regularUserRouter = express.Router();
-const RegularUser = require('../../models/users/regularUser');
-const AdminUser = require('../../models/users/adminUser');
-const Whitelist = require('../../models/sites/whitelist');
-const { generateToken, verifyToken, getTokenExpiration } = require('../../utils/authUtils');
-const redisClient = require('../../utils/redisClient');
+const RegularUser = require('../models/regularUser');
+const AdminUser = require('../models/adminUser');
+const Whitelist = require('../../sites/models/whitelist');
+const {
+	generateToken,
+	verifyToken,
+	getTokenExpiration,
+} = require('../utils/auth/authUtils');
+const redisClient = require('../utils/auth/redisClient');
 
 // Function to blacklist a token
 function blacklistToken(token, expiresIn) {
@@ -51,12 +55,8 @@ regularUserRouter.post('/register', async (req, res) => {
 regularUserRouter.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
-		// Find the user and populate the subscribed whitelist
+		// Find the user
 		const user = await RegularUser.findOne({ email: email.trim().toLowerCase() });
-		// .populate({
-		// 		path: 'subscribedWhitelist',
-		// 		populate: { path: 'monitoredSites', model: 'monitored_sites' },
-		// 	});
 		if (!user) {
 			return res.status(401).send({ success: false, message: 'User not found.' });
 		}
@@ -71,14 +71,9 @@ regularUserRouter.post('/login', async (req, res) => {
 			return res.status(401).send({ success: false, message: 'Wrong password.' });
 		}
 		const token = generateToken({ _id: user._id, role: 'user' });
-		// Extract the subscribedWhitelistId and return it along with the token
 		const subscribedWhitelistId = user.subscribedWhitelist._id;
-
-		// Extract URLs from the populated monitored sites
-		// const monitoredSiteUrls = user.subscribedWhitelist.monitoredSites.map(
-		// 	(site) => site.url
-		// );
-
+		
+		// Extract the subscribedWhitelistId and return it along with the token
 		res.json({
 			success: true,
 			token: token,
@@ -91,31 +86,23 @@ regularUserRouter.post('/login', async (req, res) => {
 // 2) POST - logout - regularUser
 regularUserRouter.post('/logout', async (req, res) => {
     const authHeader = req.headers.authorization;
-    
     if (!authHeader) {
         return res.status(400).json({ success: false, message: 'No authorization header provided' });
     }
-
     const token = authHeader.split(' ')[1];
-
     if (!token) {
         return res.status(400).json({ success: false, message: 'No token provided' });
     }
-
     try {
         const expiresIn = getTokenExpiration(token) - Math.floor(Date.now() / 1000);
-        
         // Blacklist the token
         await redisClient.set(token, 'blacklisted', 'EX', expiresIn);
-
         res.json({ success: true, message: 'Logged out successfully' });
     } catch (error) {
         console.error('Logout error:', error);
         res.status(500).json({ success: false, message: 'Server error during logout' });
     }
 });
-
-
 // GET - details - regularUser
 regularUserRouter.get('/details', authenticateToken, async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
@@ -163,7 +150,7 @@ regularUserRouter.get('/adminsWhitelists', async (req, res) => {
 		res.status(500).json({ success: false, message: 'Server error' });
 	}
 });
-// Get - regularUser TOKEN - after loginPage or at popup press
+// Get -  after loginPage or at popup press - regularUser TOKEN -
 regularUserRouter.get(
 	'/whitelist/:id/monitored-sites',
 	authenticateToken,
@@ -172,10 +159,10 @@ regularUserRouter.get(
 			const whitelistId = req.params.id;
 			console.log(whitelistId);
 
-			// Find the whitelist by its ID and populate the monitoredSites field
+			// Find the whitelist by its ID
 			const whitelist = await Whitelist.findById(whitelistId).populate({
-				path: 'monitoredSites',
-				model: 'monitored_sites', // Ensure the correct model is referenced
+				path: 'monitoredSites', //populate the monitoredSites field
+				model: 'monitored_sites', //by the mongoDB schema template
 			});
 
 			if (!whitelist) {
