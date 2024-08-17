@@ -14,7 +14,6 @@ const { normalizeUrl, generateUrlPattern } = require('../../sites/utils/urls/url
 const { generateToken, getTokenExpiration } = require('../utils/auth/authUtils');
 const roleMiddleware = require('../middleware/roleMiddleware');
 const redisClient = require('../utils/auth/redisClient');
-
 const bcrypt = require('bcrypt');
 
 // 0) register - adminUser
@@ -64,13 +63,12 @@ adminUserRouter.post('/login', async (req, res) => {
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-// 2) logout - adminUser
-adminUserRouter.post('/logout', async (req, res) => {
+// 2) TOKEN - logout - adminUser
+adminUserRouter.post('/logout',roleMiddleware(['admin']), async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) {
 		return res.status(400).json({ success: false, message: 'No token provided' });
 	}
-
 	try {
 		const expiresIn = getTokenExpiration(token) - Math.floor(Date.now() / 1000);
 		await redisClient.set(token, 'blacklisted', 'EX', expiresIn);
@@ -79,7 +77,7 @@ adminUserRouter.post('/logout', async (req, res) => {
 		res.status(500).json({ success: false, message: 'Failed to log out.' });
 	}
 });
-// Create Whitelist
+// TOKEN - Create Whitelist
 adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, res) => {
 	try {
 		const { whitelistName } = req.body;
@@ -105,7 +103,7 @@ adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, 
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-// Add Site/site's to Whitelist
+// TOKEN - Add Site/site's to Whitelist
 adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (req, res) => {
 	try {
 		const { whitelistName, sites } = req.body;

@@ -165,7 +165,7 @@ export const setupEventListeners = () => {
 	const logOutBtn = getElement('logOutBtn');
 	if (logOutBtn) {
 		logOutBtn.addEventListener('click', () => {
-			chrome.runtime.sendMessage({ message: 'logOut' }, (response) => {
+			chrome.runtime.sendMessage({ message: 'logout' }, (response) => {
 				if (response.success) {
 					navigateToPage('mainPage');
 				} else {

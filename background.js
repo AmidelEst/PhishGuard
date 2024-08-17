@@ -28,9 +28,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					sendResponse({ success: false, message: 'Login failed' });
 				});
 			return true;
-		// 2) logOut
-		case 'logOut':
-			handleLogOut(sendResponse);
+		// 2) logout
+		case 'logout':
+			handleLogout(sendResponse);
 			return true;
 		// regular token needed
 		case 'fetchSubscribedWhitelist':
@@ -225,13 +225,13 @@ function handleCheckCertificate(submittedURL, sendResponse) {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${result.authToken}`,
+					Authorization: `Bearer ${result.authToken}`,
 				},
 				body: JSON.stringify(submittedURL),
 			})
 				.then((res) => res.json())
 				.then((data) => {
-					console.log(data)
+					console.log(data);
 					sendResponse({ success: data.success, message: data.message });
 				})
 				.catch((error) => {
@@ -269,11 +269,10 @@ function handleCheckUrl(submittedURL, sendResponse) {
 	return true;
 }
 // 2) handle LogOut
-function handleLogOut(sendResponse) {
+function handleLogout(sendResponse) {
 	// Remove the token and user status from local storage
 	chrome.storage.local.get('authToken', (result) => {
 		const token = result.authToken;
-
 		// Proceed if the token exists
 		if (token) {
 			chrome.storage.local.remove(['authToken', 'userStatus'], () => {
@@ -285,13 +284,12 @@ function handleLogOut(sendResponse) {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
-							Authorization: `Bearer ${token}`, // Send the token to identify the session
+							'Authorization': `Bearer ${token}`, // Send the token to identify the session
 						},
 					})
 						.then((res) => res.json())
 						.then((data) => {
 							if (data.success) {
-								// Optionally set userStatus to 'loggedOut' to keep track
 								chrome.storage.local.set({ userStatus: 'loggedOut' }, () => {
 									sendResponse({ success: true, message: data.message });
 								});
@@ -309,3 +307,4 @@ function handleLogOut(sendResponse) {
 		}
 	});
 }
+

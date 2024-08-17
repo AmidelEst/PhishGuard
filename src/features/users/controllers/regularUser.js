@@ -1,22 +1,20 @@
 // src/features/users/controllers/users/regularUser.js
 const express = require('express');
-const bcrypt = require('bcrypt');
 const regularUserRouter = express.Router();
+const bcrypt = require('bcrypt');
+// Models
 const RegularUser = require('../models/regularUser');
 const AdminUser = require('../models/adminUser');
 const Whitelist = require('../../sites/models/whitelist');
+
 const {
 	generateToken,
-	verifyToken,
 	getTokenExpiration,
 } = require('../utils/auth/authUtils');
+const roleMiddleware = require('../middleware/roleMiddleware');
 const redisClient = require('../utils/auth/redisClient');
 
-// Function to blacklist a token
-const blacklistToken = async (token, expiresIn) => {
-    await redisClient.set(token, 'blacklisted', 'EX', expiresIn);
-};
-// 0) POST - register - regularUser
+// 0) PUBLIC - register
 regularUserRouter.post('/register', async (req, res) => {
 	try {
 		const { email, password, subscribedWhitelist } = req.body;
@@ -39,7 +37,7 @@ regularUserRouter.post('/register', async (req, res) => {
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-// 1) POST - login - regularUser
+// 1) PUBLIC - login
 regularUserRouter.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
@@ -71,28 +69,28 @@ regularUserRouter.post('/login', async (req, res) => {
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-// 2) POST - logout - regularUser
-regularUserRouter.post('/logout', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+// 2) TOKEN - logout
+regularUserRouter.post('/logout',roleMiddleware(['user']), async (req, res) => {
+	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) {
 		return res.status(400).json({ success: false, message: 'No token provided' });
 	}
-
 	try {
 		const expiresIn = getTokenExpiration(token) - Math.floor(Date.now() / 1000);
-		await blacklistToken(token, expiresIn);
+		console.log(token);
+		await redisClient.set(token, 'blacklisted', 'EX', expiresIn);
 		res.json({ success: true, message: 'Logged out successfully' });
 	} catch (error) {
 		res.status(500).json({ success: false, message: 'Server error during logout' });
 	}
 });
-// GET - details - regularUser
-regularUserRouter.get('/details', async (req, res) => {
+// TOKEN - GET - details
+regularUserRouter.get('/details',roleMiddleware(['user']), async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) return res.sendStatus(401);
 
-	const user = verifyToken(token);
-	if (!user) return res.sendStatus(403);
+	// const user = verifyToken(token);
+	// if (!user) return res.sendStatus(403);
 
 	RegularUser.findById(user._id, (err, foundUser) => {
 		if (err || !foundUser)
@@ -101,7 +99,32 @@ regularUserRouter.get('/details', async (req, res) => {
 		res.send({ success: true, email: foundUser.email });
 	});
 });
-// GET - admin-list - No need for token
+// TOKEN - GET -  after loginPage or at popup press
+regularUserRouter.get('/whitelist/:id/monitored-sites',roleMiddleware(['user']), async (req, res) => {
+	try {
+		const id = req.params.id;
+		const whitelist = await Whitelist.findById(id).populate({
+			path: 'monitoredSites',
+			model: 'monitored_sites',
+		});
+		if (!whitelist) {
+			return res.status(404).json({ success: false, message: 'Whitelist not found' });
+		}
+		const monitoredSiteUrls = whitelist.monitoredSites.map((monitoredSite) => monitoredSite.canonicalUrl);
+		res.json({
+			success: true,
+			monitoredSites: monitoredSiteUrls,
+		});
+	} catch (error) {
+		console.error('Error fetching whitelist:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Server error',
+			error: error.message,
+		});
+	}
+});
+// PUBLIC - GET - admin-list
 regularUserRouter.get('/admin-list', async (req, res) => {
 	try {
 		const admins = await AdminUser.find({}, 'email name'); // Fetch only email and name
@@ -110,7 +133,7 @@ regularUserRouter.get('/admin-list', async (req, res) => {
 		res.status(500).json({ success: false, message: error.message });
 	}
 });
-// GET - admin's whitelist - No need for token
+// PUBLIC - GET - admin's whitelist
 regularUserRouter.get('/adminsWhitelists', async (req, res) => {
 	try {
 		const adminName = req.query.adminName;
@@ -133,41 +156,5 @@ regularUserRouter.get('/adminsWhitelists', async (req, res) => {
 		res.status(500).json({ success: false, message: 'Server error' });
 	}
 });
-// Get -  after loginPage or at popup press - regularUser TOKEN -
-regularUserRouter.get('/whitelist/:id/monitored-sites', async (req, res) => {
-	try {
-		const id = req.params.id;
-
-		const whitelist = await Whitelist.findById(id).populate({
-			path: 'monitoredSites',
-			model: 'monitored_sites',
-		});
-
-		if (!whitelist) {
-			return res.status(404).json({ success: false, message: 'Whitelist not found' });
-		}
-
-		// if (!Array.isArray(whitelist.monitoredSites)) {
-		// 	console.error('monitoredSites is not an array:', whitelist.monitoredSites);
-		// }
-
-		const monitoredSiteUrls = whitelist.monitoredSites.map((monitoredSite) => monitoredSite.canonicalUrl);
-
-		// console.log('Returning monitored sites:', monitoredSiteUrls); // Add this line to log the monitored sites
-
-		res.json({
-			success: true,
-			monitoredSites: monitoredSiteUrls,
-		});
-	} catch (error) {
-		console.error('Error fetching whitelist:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Server error',
-			error: error.message,
-		});
-	}
-});
-
 
 module.exports = regularUserRouter;
