@@ -1,4 +1,4 @@
-// src/utils/authUtils.js
+// src/features/users/utils/auth/authUtils.js
 const redisClient = require('./redisClient');
 const jwt = require('jsonwebtoken');
 

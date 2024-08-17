@@ -1,4 +1,4 @@
-// src/utils/redisClient.js
+// src/features/users/utils/auth/redisClient.js
 
 const dotenv = require('dotenv');
 dotenv.config();

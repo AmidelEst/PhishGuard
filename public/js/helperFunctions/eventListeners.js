@@ -9,8 +9,8 @@ import {
 	fetchAndPopulateAdmins,
 	fetchAndPopulateAdminsWhitelists,
 	getUserSubscribedWhitelist,
-	extractBaseUrl,
 } from './api.js';
+import { formatSubmittedUrl,isUrlInWhitelist } from './url.js';
 import { showNotification, closeNotification } from '../domHandlers/notification.js';
 
 export const setupEventListeners = () => {
@@ -111,59 +111,54 @@ export const setupEventListeners = () => {
 	if (sendUrlForm) {
 		sendUrlForm.addEventListener('submit', async (e) => {
 			e.preventDefault();
-			// get submitted URL
-			let urlAddress = getElement('urlField').value.trim();
-			// Get the user's subscribed whitelist URLs asynchronously
+
+			// Get submitted URL
+			const submittedURL = getElement('urlField').value.trim().toLowerCase();
+			// Auto-assign the correct prefix if missing
+			const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
 			try {
+				// Get the user's subscribed whitelist URLs asynchronously
 				const subscribedWhitelist = await getUserSubscribedWhitelist();
-
-				// Extract and log the base URLs from the whitelist
-				const subscribedWhitelistBaseUrls = subscribedWhitelist
-					.map(extractBaseUrl)
-					.filter(Boolean);
-
-				// Check if the base URL exactly matches any whitelist URL
-				const isInWhitelist = subscribedWhitelistBaseUrls.some(
-					(whitelistUrl) => whitelistUrl === urlAddress
+				const { success, canonicalUrl, message } = isUrlInWhitelist(
+					formattedSubmittedURL,
+					subscribedWhitelist
 				);
 
-				// If the URL is NOT in the whitelist, show a notification and stop further processing
-				if (!isInWhitelist) {
-					showNotification('URL is not in your subscribed whitelist.', false);
-					return;
-				}
-				// Fetch and compare SSL certificates
-				const sslCert = await fetchSSLCertificate(baseUrl);
-				const isCertValid = await compareCertificates(baseUrl, sslCert);
-
-				if (!isCertValid) {
-					showNotification(
-						'SSL certificate does not match the stored certificate.',
-						false
+				if (success) {
+					showNotification('URL is in subscribed whitelist.', true);
+					console.log(canonicalUrl);
+					// Send URL for certificate check if it's in the whitelist
+					chrome.runtime.sendMessage(
+						{
+							message: 'checkCertificate',
+							payload: {
+								whitelistUrl: canonicalUrl,
+								submittedUrl: formattedSubmittedURL,
+							},
+						},
+						(response) => {
+							showNotification(response.message, response.success);
+						}
 					);
-					return;
-				}
+				} else {
+					// URL is NOT in the whitelist
+					showNotification(message, false);
 
-				// ONLY When we are sending the URL to our server its important to add the safety mechanism
-				if (!urlAddress.startsWith('http://') && !urlAddress.startsWith('https://')) {
-					urlAddress = `https://${urlAddress}`;
+					// Send URL for further processing
+					chrome.runtime.sendMessage(
+						{ message: 'checkUrl', payload: { url: formattedSubmittedURL } },
+						(response) => {
+							showNotification(response.message, response.success);
+						}
+					);
 				}
-
-				// If URL IS in the whitelist, proceed with sending it for further processing
-				chrome.runtime.sendMessage(
-					{ message: 'checkUrl', payload: { url: urlAddress } },
-					(response) => {
-						showNotification(response.message, response.success);
-					}
-				);
 			} catch (error) {
 				console.error('Error checking URL against whitelist:', error);
-				showNotification(
-					'There was an error processing your request. Please try again.',
-					false
-				);
+				showNotification(error.message, false);
 			}
 		});
+
+
 	}
 
 	// Logout

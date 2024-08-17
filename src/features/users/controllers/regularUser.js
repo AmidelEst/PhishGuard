@@ -1,4 +1,4 @@
-// src/controllers/users/regularUser.js
+// src/features/users/controllers/users/regularUser.js
 const express = require('express');
 const bcrypt = require('bcrypt');
 const regularUserRouter = express.Router();
@@ -13,20 +13,8 @@ const {
 const redisClient = require('../utils/auth/redisClient');
 
 // Function to blacklist a token
-function blacklistToken(token, expiresIn) {
-    // Store the token in Redis with an expiration time
-    redisClient.set(token, 'blacklisted', 'EX', expiresIn);
-}
-// Middleware to authenticate token
-const authenticateToken = (req, res, next) => {
-	const token = req.headers.authorization?.split(' ')[1];
-	if (!token) return res.sendStatus(401); // Unauthorized
-
-	const user = verifyToken(token);
-	if (!user) return res.sendStatus(403); // Forbidden
-
-	req.user = user; // Attach the user information to the request object
-	next(); // Proceed to the next middleware or route handler
+const blacklistToken = async (token, expiresIn) => {
+    await redisClient.set(token, 'blacklisted', 'EX', expiresIn);
 };
 // 0) POST - register - regularUser
 regularUserRouter.post('/register', async (req, res) => {
@@ -85,26 +73,21 @@ regularUserRouter.post('/login', async (req, res) => {
 });
 // 2) POST - logout - regularUser
 regularUserRouter.post('/logout', async (req, res) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(400).json({ success: false, message: 'No authorization header provided' });
-    }
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-        return res.status(400).json({ success: false, message: 'No token provided' });
-    }
-    try {
-        const expiresIn = getTokenExpiration(token) - Math.floor(Date.now() / 1000);
-        // Blacklist the token
-        await redisClient.set(token, 'blacklisted', 'EX', expiresIn);
-        res.json({ success: true, message: 'Logged out successfully' });
-    } catch (error) {
-        console.error('Logout error:', error);
-        res.status(500).json({ success: false, message: 'Server error during logout' });
-    }
+    const token = req.headers.authorization?.split(' ')[1];
+	if (!token) {
+		return res.status(400).json({ success: false, message: 'No token provided' });
+	}
+
+	try {
+		const expiresIn = getTokenExpiration(token) - Math.floor(Date.now() / 1000);
+		await blacklistToken(token, expiresIn);
+		res.json({ success: true, message: 'Logged out successfully' });
+	} catch (error) {
+		res.status(500).json({ success: false, message: 'Server error during logout' });
+	}
 });
 // GET - details - regularUser
-regularUserRouter.get('/details', authenticateToken, async (req, res) => {
+regularUserRouter.get('/details', async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) return res.sendStatus(401);
 
@@ -151,37 +134,40 @@ regularUserRouter.get('/adminsWhitelists', async (req, res) => {
 	}
 });
 // Get -  after loginPage or at popup press - regularUser TOKEN -
-regularUserRouter.get(
-	'/whitelist/:id/monitored-sites',
-	authenticateToken,
-	async (req, res) => {
-		try {
-			const whitelistId = req.params.id;
-			console.log(whitelistId);
+regularUserRouter.get('/whitelist/:id/monitored-sites', async (req, res) => {
+	try {
+		const id = req.params.id;
 
-			// Find the whitelist by its ID
-			const whitelist = await Whitelist.findById(whitelistId).populate({
-				path: 'monitoredSites', //populate the monitoredSites field
-				model: 'monitored_sites', //by the mongoDB schema template
-			});
+		const whitelist = await Whitelist.findById(id).populate({
+			path: 'monitoredSites',
+			model: 'monitored_sites',
+		});
 
-			if (!whitelist) {
-				return res
-					.status(404)
-					.json({ success: false, message: 'Whitelist not found' });
-			}
-			// Extract the URLs of the monitored sites
-			const monitoredSiteUrls = whitelist.monitoredSites.map((site) => site.url);
-
-			res.json({
-				success: true,
-				monitoredSites: monitoredSiteUrls,
-			});
-		} catch (error) {
-			console.error('Error fetching whitelist:', error);
-			res.status(500).json({ success: false, message: 'Server error' });
+		if (!whitelist) {
+			return res.status(404).json({ success: false, message: 'Whitelist not found' });
 		}
+
+		// if (!Array.isArray(whitelist.monitoredSites)) {
+		// 	console.error('monitoredSites is not an array:', whitelist.monitoredSites);
+		// }
+
+		const monitoredSiteUrls = whitelist.monitoredSites.map((monitoredSite) => monitoredSite.canonicalUrl);
+
+		// console.log('Returning monitored sites:', monitoredSiteUrls); // Add this line to log the monitored sites
+
+		res.json({
+			success: true,
+			monitoredSites: monitoredSiteUrls,
+		});
+	} catch (error) {
+		console.error('Error fetching whitelist:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Server error',
+			error: error.message,
+		});
 	}
-);
+});
+
 
 module.exports = regularUserRouter;

@@ -1,5 +1,6 @@
 // public/js/helperFunctions/api.js
 import { showNotification } from '../domHandlers/notification.js';
+import { extractBaseUrl } from './url.js';
 import {
 	populateAdminDropdown,
 	populateWhitelistsDropdown,
@@ -49,11 +50,11 @@ export const fetchSubscribedWhitelistId = (callback) => {
 };
 // Function to fetch the subscribed whitelist and populate the URLs
 export const fetchAndPopulateWhitelistUrls = (subscribedWhitelistId) => {
-    chrome.runtime.sendMessage(
+	chrome.runtime.sendMessage(
 		{ message: 'fetchSubscribedWhitelist', subscribedWhitelistId },
 		(response) => {
 			if (response.success) {
-				// Extract base URLs from the full URLs and filter out any invalid ones
+				// Extract base URLs from the URLs returned by the backend
 				const baseUrls = response.monitoredSites.map(extractBaseUrl).filter(Boolean);
 				populateWhitelistUrls(baseUrls);
 			} else {
@@ -71,13 +72,4 @@ export const getUserSubscribedWhitelist = async () => {
 			console.error('Error fetching whitelist:', error);
 			return [];
 		});
-};
-//
-export const extractBaseUrl = (url) => {
-	try {
-		const { hostname } = new URL(url);
-		return hostname;
-	} catch (e) {
-		return null;
-	}
 };

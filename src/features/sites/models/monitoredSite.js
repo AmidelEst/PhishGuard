@@ -6,8 +6,12 @@ const monitoredSiteSchema = new Schema(
 	{
 		// Reference to the Hosting whitelist
 		whitelistId: { type: Schema.Types.ObjectId, ref: 'whitelists', required: true },
+		// Canonical URL for the monitored site
 		siteName: { type: String, required: true },
-		url: { type: String, required: true },
+		canonicalUrl: { type: String, required: true }, // Updated field
+
+		// Pattern to match variations of the site URL
+		urlPattern: { type: String, required: true },
 		DOM: { type: String },
 		minHash: { type: [Number] },
 		// Reference to the SSL certificate

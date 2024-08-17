@@ -1,20 +1,21 @@
-// src\features\users\controllers\adminUser.js
+// src/features/users/controllers/adminUser.js
 const express = require('express');
 const adminUserRouter = express.Router();
 const AdminUser = require('../models/adminUser');
 const Whitelist = require('../../sites/models/whitelist');
 const MonitoredSite = require('../../sites/models/monitoredSite');
 const {
-	storeCertificateForSite,fetchSSLCertificate,
+	storeCertificateForSite,
+	fetchSSLCertificate,
 } = require('../../sites/utils/certificate/certificate');
 const { compressAndHashHTML } = require('../../sites/utils/cyber/urlToHash');
+const { normalizeUrl, generateUrlPattern } = require('../../sites/utils/urls/url');
 
 const { generateToken, getTokenExpiration } = require('../utils/auth/authUtils');
 const roleMiddleware = require('../middleware/roleMiddleware');
 const redisClient = require('../utils/auth/redisClient');
 
 const bcrypt = require('bcrypt');
-
 
 // 0) register - adminUser
 adminUserRouter.post('/register', async (req, res) => {
@@ -64,27 +65,17 @@ adminUserRouter.post('/login', async (req, res) => {
 	}
 });
 // 2) logout - adminUser
-adminUserRouter.post('/logout', roleMiddleware(['admin']), async (req, res) => {
+adminUserRouter.post('/logout', async (req, res) => {
+	const token = req.headers.authorization?.split(' ')[1];
+	if (!token) {
+		return res.status(400).json({ success: false, message: 'No token provided' });
+	}
+
 	try {
-		const token = req.headers.authorization.split(' ')[1];
-
-		if (!token) {
-			return res.status(400).json({ success: false, message: 'No token provided.' });
-		}
-
-		const expiresIn = getTokenExpiration(token);
-
-		// Blacklist the token in Redis
-		await redisClient.set(
-			token,
-			'blacklisted',
-			'EX',
-			expiresIn - Math.floor(Date.now() / 1000)
-		);
-
+		const expiresIn = getTokenExpiration(token) - Math.floor(Date.now() / 1000);
+		await redisClient.set(token, 'blacklisted', 'EX', expiresIn);
 		res.json({ success: true, message: 'Successfully logged out and token blacklisted.' });
 	} catch (error) {
-		console.error('Error during logout:', error.message);
 		res.status(500).json({ success: false, message: 'Failed to log out.' });
 	}
 });
@@ -114,17 +105,18 @@ adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, 
 		res.status(500).send({ success: false, message: error.message });
 	}
 });
-// Add Site to Whitelist
+// Add Site/site's to Whitelist
 adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (req, res) => {
 	try {
 		const { whitelistName, sites } = req.body;
 		const adminId = req.user._id;
 
 		// Verify that the whitelist exists for this admin
-		const whitelist = await Whitelist.findOne({ adminId, whitelistName });
-		if (!whitelist) {
-			return res.status(404).send({ success: false, message: 'Whitelist not found' });
-		}
+		const whitelist = await Whitelist.findOneAndUpdate(
+			{ adminId, whitelistName }, // Query to match
+			{ $setOnInsert: { adminId, whitelistName } }, // Set on insert if no match found
+			{ new: true, upsert: true, setDefaultsOnInsert: true } // Upsert options
+		);
 
 		// Array to store results
 		const addedSites = [];
@@ -134,15 +126,21 @@ adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (re
 		for (let site of sites) {
 			const { siteName, url } = site;
 
+			// Normalize the canonical URL
+			const canonicalUrl = normalizeUrl(url); // Assuming normalizeUrl is a utility function to normalize URLs
+
 			// Check if the site already exists
-			const existingSite = await MonitoredSite.findOne({ url });
+			const existingSite = await MonitoredSite.findOne({ canonicalUrl });
 			if (existingSite) {
 				errors.push({ siteName, message: 'Site already exists' });
 				continue; // Skip to the next site
 			}
 
-			// Process the site
-			const hashedResult = await compressAndHashHTML(url);
+			// Generate the URL pattern for variations
+			const urlPattern = generateUrlPattern(canonicalUrl); // Assuming generateUrlPattern is a utility function for creating a pattern
+
+			// Process the site (hash the HTML content and other logic)
+			const hashedResult = await compressAndHashHTML(canonicalUrl);
 			if (!hashedResult) {
 				errors.push({ siteName, message: 'Failed to hash site content' });
 				continue; // Skip to the next site
@@ -152,7 +150,8 @@ adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (re
 			const newMonitoredSite = new MonitoredSite({
 				whitelistId: whitelist._id,
 				siteName,
-				url: hashedResult.url,
+				canonicalUrl,
+				urlPattern, // Store the pattern that matches variations of the site URL
 				DOM: hashedResult.content,
 				minHash: hashedResult.minHash,
 			});
@@ -160,7 +159,7 @@ adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (re
 
 			// Try to fetch and store the SSL certificate
 			try {
-				const certificate = await fetchSSLCertificate(hashedResult.url);
+				const certificate = await fetchSSLCertificate(canonicalUrl);
 				await storeCertificateForSite(newMonitoredSite._id, certificate); // Link the certificate to the site
 			} catch (error) {
 				console.error(

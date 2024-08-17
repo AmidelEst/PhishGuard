@@ -1,4 +1,4 @@
-// src\features\users\middleware\roleMiddleware.js
+// src/features/users/middleware/roleMiddleware.js
 
 const { verifyToken } = require('../utils/auth/authUtils');
 

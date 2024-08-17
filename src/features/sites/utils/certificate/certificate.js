@@ -3,10 +3,10 @@ const Certificate = require('../../models/certificate');
 const MonitoredSite = require('../../models/monitoredSite');
 const https = require('https');
 const tls = require('tls');
-
+//
 async function fetchSSLCertificate(domain) {
 	return new Promise((resolve, reject) => {
-		// we only pass the domain, not the full URL with path
+		// Extract the hostname from the URL
 		const { hostname } = new URL(domain);
 
 		const options = {
@@ -17,11 +17,26 @@ async function fetchSSLCertificate(domain) {
 		};
 
 		const req = https.request(options, (res) => {
+			// Retrieve the SSL certificate from the connection
 			const certificate = res.socket.getPeerCertificate();
-			if (certificate) {
-				resolve(certificate);
+
+			if (certificate && certificate.subject && certificate.subject.CN) {
+				// Prepare the certificate object for comparison
+				const formattedCertificate = {
+					commonName: certificate.subject.CN,
+					issuer: Object.entries(certificate.issuer)
+						.map(([key, value]) => `${key}: '${value}'`)
+						.join(', '),
+					validFrom: new Date(certificate.valid_from),
+					validTo: new Date(certificate.valid_to),
+					fingerprint: certificate.fingerprint || 'No Fingerprint Available',
+				};
+
+				// Resolve the formatted certificate object
+				resolve(formattedCertificate);
 			} else {
-				reject(new Error('Could not retrieve certificate.'));
+				// Reject if the certificate is missing or invalid
+				reject(new Error('Could not retrieve a valid SSL certificate.'));
 			}
 		});
 
@@ -32,7 +47,6 @@ async function fetchSSLCertificate(domain) {
 		req.end();
 	});
 }
-
 // Function to store the certificate and link it to a monitored site
 async function storeCertificateForSite(siteId, certificateData) {
 	try {
@@ -88,19 +102,13 @@ async function storeCertificateForSite(siteId, certificateData) {
 		throw err;
 	}
 }
-
-
-async function compareCertificates(domain, newCertificate) {
-	const storedCertificate = await CertificateModel.findOne({ domain });
-
-	if (!storedCertificate) {
-		return false; // No stored certificate to compare
-	}
-
+//
+async function compareCertificates(monitoredSiteCertificate, newCertificate) {
 	// Compare fingerprints (this is a common way to compare certificates)
-	return storedCertificate.fingerprint === newCertificate.fingerprint;
+	return monitoredSiteCertificate.fingerprint === newCertificate.fingerprint;
 }
 module.exports = {
 	storeCertificateForSite,
+	compareCertificates,
 	fetchSSLCertificate,
 };
