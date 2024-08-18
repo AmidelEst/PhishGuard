@@ -4,10 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Anti-Phishing Extension</title>
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline';">
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="./vendors/css/bootstrap.min.css">
-  <!-- OUR CSS -->
+  <!-- SELF CSS -->
   <link rel="stylesheet" href="./css/popup.css">
 </head>
 
@@ -18,7 +22,7 @@
     <!-- GOTO Register -->
     <div class="row justify-content-">
       <button id="goToRegister" class="btn btn-outline-primary col col-lg-2">Register</button>
-      
+
       <!-- GOTO Login -->
       <button id="goToLogin" class="btn btn-outline-primary col col-lg-2">Log In</button>
     </div>
@@ -191,11 +195,12 @@
   <!-- Backdrop -->
   <div id="backdrop" class="backdrop hidden"></div>
 
-  <script type="module" src="popup.js"></script>
+  <script type="module" src="./js/popup/popup.js"></script>
   <!-- Bootstrap JS and dependencies -->
   <script src="./vendors/js/query-3.6.0.min.js"></script>
-  <script src="./vendors/js/popper.min.js"></script>
+  <!-- <script src="./vendors/js/popper.min.js"></script>  -->
   <script src="./vendors/js/bootstrap.bundle.min.js"></script>
-  <script src="./vendors/js/bootstrap.min.js"></script>
+  <!-- <script src="./vendors/js/bootstrap.min.js"></script> -->
 </body>
+
 </html>

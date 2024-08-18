@@ -1,5 +1,5 @@
 //------------------------------------------------------//
-// url.js
+// public/js/helperFunctions/urlUtils.js
 export function normalizeUrl(url) {
 	try {
 		const parsedUrl = new URL(url.toLowerCase());
@@ -14,10 +14,11 @@ export function normalizeUrl(url) {
 		return null; // Return null or handle invalid URLs appropriately
 	}
 }
+
 // Adjust isUrlInWhitelist to handle an array of strings (URLs)
 export function isUrlInWhitelist(submittedUrl, whitelist) {
-	// Check that the whitelist is an array of strings
 	if (!Array.isArray(whitelist)) {
+		// Check that the whitelist is an array of strings
 		console.error('Invalid whitelist structure:', whitelist);
 		return { success: false, message: 'Invalid whitelist structure' };
 	}
@@ -35,16 +36,18 @@ export function isUrlInWhitelist(submittedUrl, whitelist) {
 	return { success: false, message: 'URL not found in whitelist' };
 }
 //
-export const extractBaseUrl = (url) => {
+export const extractBaseUrl = url => {
 	try {
 		const { hostname } = new URL(url);
-		return hostname;
+		// Remove 'www.' if it exists at the start of the hostname
+		return hostname.startsWith('www.') ? hostname.slice(4) : hostname;
 	} catch (e) {
+		console.error('Invalid URL provided:', e);
 		return null;
 	}
 };
 // Format submitted URL with the correct prefix if missing
-export const formatSubmittedUrl = (url) => {
+export const formatSubmittedUrl = url => {
 	if (!/^https?:\/\//i.test(url)) {
 		url = /^www\./i.test(url) ? `https://${url}` : `https://www.${url}`;
 	}

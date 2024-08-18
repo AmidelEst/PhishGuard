@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		case 'register':
 			handleRegistration(request.payload)
 				.then(sendResponse)
-				.catch((err) => {
+				.catch(err => {
 					console.error(err);
 					sendResponse({ success: false, message: 'Registration failed' });
 				});
@@ -23,7 +23,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		case 'login':
 			handleLogin(request.payload)
 				.then(sendResponse)
-				.catch((error) => {
+				.catch(error => {
 					console.error(error);
 					sendResponse({ success: false, message: 'Login failed' });
 				});
@@ -81,42 +81,39 @@ function checkAuthToken(sendResponse) {
 		}
 	});
 }
+function isTokenExpired(token) {
+	const decodedToken = JSON.parse(atob(token.split('.')[1]));
+	return decodedToken.exp * 1000 < Date.now();
+}
+
 // PUBLIC - at registerPage-GET admins
 function fetchAdmins(sendResponse) {
-	fetch(`${apiUrl}/user/admin-list`, {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	})
-		.then((res) => res.json())
-		.then((data) => {
-			if (!data.success) {
-				throw new Error(data.message);
-			}
-			sendResponse({ success: true, admins: data.admins });
-		})
-		.catch((error) => {
-			sendResponse({ success: false, message: error.message });
-		});
+	fetch(`${apiUrl}/user/admin-list`, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
+		.then(res => (res.ok ? res.json() : Promise.reject(new Error('Network response was not ok'))))
+		.then(data =>
+			data.success
+				? sendResponse({ success: true, admins: data.admins })
+				: sendResponse({ success: false, message: data.message })
+		)
+		.catch(error => sendResponse({ success: false, message: error.message }));
 }
 // PUBLIC - at registerPage-GET admin's Whitelists
 function fetchAdminsWhitelists(adminName, sendResponse) {
 	fetch(`${apiUrl}/user/adminsWhitelists?adminName=${encodeURIComponent(adminName)}`, {
 		method: 'GET',
 		headers: {
-			'Content-Type': 'application/json',
-		},
+			'Content-Type': 'application/json'
+		}
 	})
-		.then((response) => response.json())
-		.then((data) => {
+		.then(response => response.json())
+		.then(data => {
 			if (data.success) {
 				sendResponse({ success: true, whitelists: data.whitelists });
 			} else {
 				sendResponse({ success: false, message: 'Failed to fetch whitelists' });
 			}
 		})
-		.catch((error) => {
+		.catch(error => {
 			sendResponse({ success: false, message: error.message });
 		});
 }
@@ -125,10 +122,10 @@ function handleRegistration(user_info) {
 	return fetch(`${apiUrl}/user/register`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(user_info),
+		body: JSON.stringify(user_info)
 	})
-		.then((res) => res.json())
-		.then((data) => {
+		.then(res => res.json())
+		.then(data => {
 			return { success: data.success, message: data.message };
 		});
 }
@@ -137,19 +134,23 @@ function handleLogin(userCredentials) {
 	return fetch(`${apiUrl}/user/login`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(userCredentials),
+		body: JSON.stringify(userCredentials)
 	})
-		.then((res) => res.json())
-		.then((data) => {
+		.then(res => res.json())
+		.then(data => {
 			if (!data.success) {
 				throw new Error(data.message);
 			}
+
 			return new Promise((resolve, reject) => {
+				console.log('🚀 ~ handleLogin ~ subscribedWhitelistId:', data.subscribedWhitelistId); // Debugging
+
+				// Store login details in chrome.storage.local
 				chrome.storage.local.set(
 					{
 						userStatus: 'loggedIn',
 						authToken: data.token,
-						subscribedWhitelistId: data.subscribedWhitelistId,
+						subscribedWhitelistId: data.subscribedWhitelistId
 					},
 					() => {
 						if (chrome.runtime.lastError) {
@@ -162,6 +163,7 @@ function handleLogin(userCredentials) {
 			});
 		});
 }
+
 // regularUser TOKEN - after loginPage or at popup press -
 function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 	if (!subscribedWhitelistId) {
@@ -169,7 +171,7 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 		return;
 	}
 
-	chrome.storage.local.get('authToken', (result) => {
+	chrome.storage.local.get('authToken', result => {
 		if (!result.authToken) {
 			sendResponse({ success: false, message: 'No token available' });
 			return;
@@ -181,23 +183,20 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`, // Fix: added space between Bearer and token
-			},
+				'Authorization': `Bearer ${token}` // Fix: added space between Bearer and token
+			}
 		})
-			.then((res) => res.json())
-			.then((whitelistData) => {
+			.then(res => res.json())
+			.then(whitelistData => {
 				if (whitelistData.success) {
 					const monitoredSites = whitelistData.monitoredSites || []; // Extract URLs properly
 
 					chrome.storage.local.set({ subscribedWhitelist: monitoredSites }, () => {
 						if (chrome.runtime.lastError) {
-							console.error(
-								'Error storing monitored sites:',
-								chrome.runtime.lastError
-							);
+							console.error('Error storing monitored sites:', chrome.runtime.lastError);
 							sendResponse({
 								success: false,
-								message: chrome.runtime.lastError,
+								message: chrome.runtime.lastError
 							});
 						} else {
 							sendResponse({ success: true, monitoredSites: monitoredSites });
@@ -207,11 +206,11 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 					console.error('Failed to fetch monitored sites:', whitelistData.message);
 					sendResponse({
 						success: false,
-						message: whitelistData.message || 'Failed to fetch monitored sites.',
+						message: whitelistData.message || 'Failed to fetch monitored sites.'
 					});
 				}
 			})
-			.catch((error) => {
+			.catch(error => {
 				console.error('Error fetching monitored sites:', error);
 				sendResponse({ success: false, message: 'Error fetching monitored sites.' });
 			});
@@ -219,22 +218,22 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 }
 // regularUser TOKEN - CheckCertificate
 function handleCheckCertificate(submittedURL, sendResponse) {
-	chrome.storage.local.get('authToken', (result) => {
+	chrome.storage.local.get('authToken', result => {
 		if (result.authToken) {
 			fetch(`${apiUrl}/sites/check_cv`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${result.authToken}`,
+					'Authorization': `Bearer ${result.authToken}`
 				},
-				body: JSON.stringify(submittedURL),
+				body: JSON.stringify(submittedURL)
 			})
-				.then((res) => res.json())
-				.then((data) => {
+				.then(res => res.json())
+				.then(data => {
 					console.log(data);
 					sendResponse({ success: data.success, message: data.message });
 				})
-				.catch((error) => {
+				.catch(error => {
 					sendResponse({ success: false, message: error.message });
 				});
 		} else {
@@ -244,21 +243,21 @@ function handleCheckCertificate(submittedURL, sendResponse) {
 }
 // regularUser TOKEN - checkUrl
 function handleCheckUrl(submittedURL, sendResponse) {
-	chrome.storage.local.get('authToken', (result) => {
+	chrome.storage.local.get('authToken', result => {
 		if (result.authToken) {
 			fetch(`${apiUrl}/sites/check_url`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${result.authToken}`,
+					'Authorization': `Bearer ${result.authToken}`
 				},
-				body: JSON.stringify(submittedURL),
+				body: JSON.stringify(submittedURL)
 			})
-				.then((res) => res.json())
-				.then((data) => {
+				.then(res => res.json())
+				.then(data => {
 					sendResponse({ success: data.success, message: data.message });
 				})
-				.catch((error) => {
+				.catch(error => {
 					sendResponse({ success: false, message: error.message });
 				});
 		} else {
@@ -271,7 +270,7 @@ function handleCheckUrl(submittedURL, sendResponse) {
 // 2) handle LogOut
 function handleLogout(sendResponse) {
 	// Remove the token and user status from local storage
-	chrome.storage.local.get('authToken', (result) => {
+	chrome.storage.local.get('authToken', result => {
 		const token = result.authToken;
 		// Proceed if the token exists
 		if (token) {
@@ -284,11 +283,11 @@ function handleLogout(sendResponse) {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
-							'Authorization': `Bearer ${token}`, // Send the token to identify the session
-						},
+							'Authorization': `Bearer ${token}` // Send the token to identify the session
+						}
 					})
-						.then((res) => res.json())
-						.then((data) => {
+						.then(res => res.json())
+						.then(data => {
 							if (data.success) {
 								chrome.storage.local.set({ userStatus: 'loggedOut' }, () => {
 									sendResponse({ success: true, message: data.message });
@@ -297,7 +296,7 @@ function handleLogout(sendResponse) {
 								sendResponse({ success: false, message: data.message });
 							}
 						})
-						.catch((error) => {
+						.catch(error => {
 							sendResponse({ success: false, message: error.message });
 						});
 				}
@@ -307,4 +306,3 @@ function handleLogout(sendResponse) {
 		}
 	});
 }
-
