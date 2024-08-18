@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // public/popup.js
 import { navigateToPage } from './js/domHandlers/navigation.js';
 import { setupEventListeners } from './js/helperFunctions/eventListeners.js';
@@ -5,7 +6,7 @@ import { fetchAndPopulateWhitelistUrls } from './js/helperFunctions/api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 	setupEventListeners();
-		
+
 	// Initial check for existing user session
 	chrome.runtime.sendMessage({ message: 'onStart' }, (response) => {
 		if (response.success) {
@@ -25,4 +26,3 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	});
 });
-	

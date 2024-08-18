@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 //  public/js/domHandlers/navigation.js
 import { getElement } from './getElement.js';
 

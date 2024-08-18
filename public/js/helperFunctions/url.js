@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // url.js
 export function normalizeUrl(url) {
 	try {
@@ -13,36 +14,27 @@ export function normalizeUrl(url) {
 		return null; // Return null or handle invalid URLs appropriately
 	}
 }
-
 // Adjust isUrlInWhitelist to handle an array of strings (URLs)
-
 export function isUrlInWhitelist(submittedUrl, whitelist) {
-    // Check that the whitelist is an array of strings
-    if (!Array.isArray(whitelist)) {
-        console.error('Invalid whitelist structure:', whitelist);
-        return { success: false, message: 'Invalid whitelist structure' };
-    }
-
-    const normalizedSubmittedUrl = normalizeUrl(submittedUrl);
-
-    if (!normalizedSubmittedUrl) {
-        return { success: false, message: 'Invalid URL submitted' };
-    }
-
-    // Loop through the whitelist and check for a direct match
-    for (const url of whitelist) {
-        const normalizedWhitelistUrl = normalizeUrl(url);
-
-        if (normalizedWhitelistUrl.includes(normalizedSubmittedUrl)) {
+	// Check that the whitelist is an array of strings
+	if (!Array.isArray(whitelist)) {
+		console.error('Invalid whitelist structure:', whitelist);
+		return { success: false, message: 'Invalid whitelist structure' };
+	}
+	const normalizedSubmittedUrl = normalizeUrl(submittedUrl);
+	if (!normalizedSubmittedUrl) {
+		return { success: false, message: 'Invalid URL submitted' };
+	}
+	// Loop through the whitelist and check for a direct match
+	for (const url of whitelist) {
+		const normalizedWhitelistUrl = normalizeUrl(url);
+		if (normalizedWhitelistUrl.includes(normalizedSubmittedUrl)) {
 			return { success: true, canonicalUrl: url };
 		}
-    }
-
-    return { success: false, message: 'URL not found in whitelist' };
+	}
+	return { success: false, message: 'URL not found in whitelist' };
 }
-
-
-// //
+//
 export const extractBaseUrl = (url) => {
 	try {
 		const { hostname } = new URL(url);

@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // src/features/users/controllers/users/regularUser.js
 const express = require('express');
 const regularUserRouter = express.Router();
@@ -7,10 +8,7 @@ const RegularUser = require('../models/regularUser');
 const AdminUser = require('../models/adminUser');
 const Whitelist = require('../../sites/models/whitelist');
 
-const {
-	generateToken,
-	getTokenExpiration,
-} = require('../utils/auth/authUtils');
+const { generateToken, getTokenExpiration } = require('../utils/auth/authUtils');
 const roleMiddleware = require('../middleware/roleMiddleware');
 const redisClient = require('../utils/auth/redisClient');
 
@@ -58,7 +56,7 @@ regularUserRouter.post('/login', async (req, res) => {
 		}
 		const token = generateToken({ _id: user._id, role: 'user' });
 		const subscribedWhitelistId = user.subscribedWhitelist._id;
-		
+
 		// Extract the subscribedWhitelistId and return it along with the token
 		res.json({
 			success: true,
@@ -70,7 +68,7 @@ regularUserRouter.post('/login', async (req, res) => {
 	}
 });
 // 2) TOKEN - logout
-regularUserRouter.post('/logout',roleMiddleware(['user']), async (req, res) => {
+regularUserRouter.post('/logout', roleMiddleware(['user']), async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) {
 		return res.status(400).json({ success: false, message: 'No token provided' });
@@ -85,7 +83,7 @@ regularUserRouter.post('/logout',roleMiddleware(['user']), async (req, res) => {
 	}
 });
 // TOKEN - GET - details
-regularUserRouter.get('/details',roleMiddleware(['user']), async (req, res) => {
+regularUserRouter.get('/details', roleMiddleware(['user']), async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) return res.sendStatus(401);
 
@@ -100,30 +98,38 @@ regularUserRouter.get('/details',roleMiddleware(['user']), async (req, res) => {
 	});
 });
 // TOKEN - GET -  after loginPage or at popup press
-regularUserRouter.get('/whitelist/:id/monitored-sites',roleMiddleware(['user']), async (req, res) => {
-	try {
-		const id = req.params.id;
-		const whitelist = await Whitelist.findById(id).populate({
-			path: 'monitoredSites',
-			model: 'monitored_sites',
-		});
-		if (!whitelist) {
-			return res.status(404).json({ success: false, message: 'Whitelist not found' });
+regularUserRouter.get(
+	'/whitelist/:id/monitored-sites',
+	roleMiddleware(['user']),
+	async (req, res) => {
+		try {
+			const id = req.params.id;
+			const whitelist = await Whitelist.findById(id).populate({
+				path: 'monitoredSites',
+				model: 'monitored_sites',
+			});
+			if (!whitelist) {
+				return res
+					.status(404)
+					.json({ success: false, message: 'Whitelist not found' });
+			}
+			const monitoredSiteUrls = whitelist.monitoredSites.map(
+				(monitoredSite) => monitoredSite.canonicalUrl
+			);
+			res.json({
+				success: true,
+				monitoredSites: monitoredSiteUrls,
+			});
+		} catch (error) {
+			console.error('Error fetching whitelist:', error);
+			res.status(500).json({
+				success: false,
+				message: 'Server error',
+				error: error.message,
+			});
 		}
-		const monitoredSiteUrls = whitelist.monitoredSites.map((monitoredSite) => monitoredSite.canonicalUrl);
-		res.json({
-			success: true,
-			monitoredSites: monitoredSiteUrls,
-		});
-	} catch (error) {
-		console.error('Error fetching whitelist:', error);
-		res.status(500).json({
-			success: false,
-			message: 'Server error',
-			error: error.message,
-		});
 	}
-});
+);
 // PUBLIC - GET - admin-list
 regularUserRouter.get('/admin-list', async (req, res) => {
 	try {

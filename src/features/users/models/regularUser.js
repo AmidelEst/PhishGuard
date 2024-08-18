@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // src/models/users/regularUser.js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;

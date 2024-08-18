@@ -1,7 +1,8 @@
+//------------------------------------------------------//
 // src\features\sites\controllers\sites.js
 const express = require('express');
 const router = express.Router();
-const MonitoredSite=require('../models/monitoredSite')
+const MonitoredSite = require('../models/monitoredSite');
 const {
 	fetchAndHashSubmittedURL,
 	fetchWhitelistedSites,
@@ -93,7 +94,7 @@ router.post('/check_url', async (req, res) => {
 
 	// Determine response based on similarity score
 	const similarityThreshold = 0.8;
-	
+
 	if (similarity > similarityThreshold) {
 		return res.status(200).json({
 			success: true,

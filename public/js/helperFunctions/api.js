@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // public/js/helperFunctions/api.js
 import { showNotification } from '../domHandlers/notification.js';
 import { extractBaseUrl } from './url.js';
@@ -32,21 +33,21 @@ export const fetchAndPopulateAdminsWhitelists = (selectedAdminName) => {
 };
 // login process
 export const loginUser = (email, password, callback) => {
-    const payload = { email, password };
-    chrome.runtime.sendMessage({ message: 'login', payload }, (response) => {
-        callback(response);
-    });
+	const payload = { email, password };
+	chrome.runtime.sendMessage({ message: 'login', payload }, (response) => {
+		callback(response);
+	});
 };
-// retrieve the subscribedWhitelistId 
+// retrieve the subscribedWhitelistId
 export const fetchSubscribedWhitelistId = (callback) => {
-    chrome.storage.local.get('subscribedWhitelistId', (result) => {
-        if (result.subscribedWhitelistId) {
-            callback(result.subscribedWhitelistId);
-        } else {
-            console.error('subscribedWhitelistId not found in storage');
-            showNotification('Could not retrieve whitelist. Please try again.', false);
-        }
-    });
+	chrome.storage.local.get('subscribedWhitelistId', (result) => {
+		if (result.subscribedWhitelistId) {
+			callback(result.subscribedWhitelistId);
+		} else {
+			console.error('subscribedWhitelistId not found in storage');
+			showNotification('Could not retrieve whitelist. Please try again.', false);
+		}
+	});
 };
 // Function to fetch the subscribed whitelist and populate the URLs
 export const fetchAndPopulateWhitelistUrls = (subscribedWhitelistId) => {

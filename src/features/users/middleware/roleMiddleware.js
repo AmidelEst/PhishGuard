@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // src/features/users/middleware/roleMiddleware.js
 
 const { verifyToken } = require('../utils/auth/authUtils');
@@ -17,12 +18,10 @@ const roleMiddleware = (roles) => {
 
 			// Ensure the user exists and has a valid role
 			if (!user || !roles.includes(user.role)) {
-				return res
-					.status(403)
-					.json({
-						success: false,
-						message: 'Access Denied. Insufficient Permissions.',
-					});
+				return res.status(403).json({
+					success: false,
+					message: 'Access Denied. Insufficient Permissions.',
+				});
 			}
 
 			req.user = user; // Attach the user object to the request
@@ -33,6 +32,5 @@ const roleMiddleware = (roles) => {
 		}
 	};
 };
-
 
 module.exports = roleMiddleware;

@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // public/js/domHandlers/notification.js
 import { getElement } from './getElement.js';
 

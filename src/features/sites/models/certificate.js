@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // src/features/sites/models/certificate.js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;

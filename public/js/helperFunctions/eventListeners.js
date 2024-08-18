@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 //  public/js/helperFunctions/eventListeners.js
 import { getElement } from '../domHandlers/getElement.js';
 import { navigateToPage } from '../domHandlers/navigation.js';
@@ -10,7 +11,7 @@ import {
 	fetchAndPopulateAdminsWhitelists,
 	getUserSubscribedWhitelist,
 } from './api.js';
-import { formatSubmittedUrl,isUrlInWhitelist } from './url.js';
+import { formatSubmittedUrl, isUrlInWhitelist } from './url.js';
 import { showNotification, closeNotification } from '../domHandlers/notification.js';
 
 export const setupEventListeners = () => {
@@ -157,8 +158,6 @@ export const setupEventListeners = () => {
 				showNotification(error.message, false);
 			}
 		});
-
-
 	}
 
 	// Logout

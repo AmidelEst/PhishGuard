@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 //  public/js/domBinding/validation.js
 import { getElement } from './getElement.js';
 
@@ -25,18 +26,18 @@ export const validatePassword = () => {
 	}
 };
 export const validateUrlField = () => {
-    const urlField = getElement('urlField');
-    const urlValue = urlField.value.trim();
+	const urlField = getElement('urlField');
+	const urlValue = urlField.value.trim();
 
-    // Regular expression to validate URL with or without http/https
-    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-./?%&=]*)?$/i;
+	// Regular expression to validate URL with or without http/https
+	const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-./?%&=]*)?$/i;
 
-    if (!urlPattern.test(urlValue)) {
-        urlField.classList.add('is-invalid');  // Add Bootstrap invalid class
-        return false;  // Validation failed
-    }
+	if (!urlPattern.test(urlValue)) {
+		urlField.classList.add('is-invalid'); // Add Bootstrap invalid class
+		return false; // Validation failed
+	}
 
-    urlField.classList.remove('is-invalid');  // Remove invalid class if valid
-    urlField.classList.add('is-valid');       // Optionally, add valid class
-    return true;  // Validation passed
+	urlField.classList.remove('is-invalid'); // Remove invalid class if valid
+	urlField.classList.add('is-valid'); // Optionally, add valid class
+	return true; // Validation passed
 };

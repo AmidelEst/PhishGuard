@@ -1,3 +1,4 @@
+//------------------------------------------------------//
 // src\features\sites\controllers\whitelist.js
 const fs = require('fs');
 const path = require('path');
@@ -17,7 +18,6 @@ async function setupWhitelist() {
 	const whitelist = readWhitelistFromFile();
 	try {
 		await addSitesToWhitelist(whitelist);
-
 	} catch (error) {
 		console.error('Error adding sites to the whitelist:', error);
 	}
@@ -25,7 +25,6 @@ async function setupWhitelist() {
 }
 
 async function addSiteToWhitelist(site) {
-
 	const { name: siteName, url } = site; // use 'name:' to fit the json key name.
 	try {
 		// Create minHash and content for the given site
@@ -40,7 +39,7 @@ async function addSiteToWhitelist(site) {
 			{ url: url },
 			{
 				siteName: siteName,
-				url:url,
+				url: url,
 				minHash: minHash,
 				content: content,
 			},
