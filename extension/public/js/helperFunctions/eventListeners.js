@@ -195,14 +195,17 @@ const handleSendUrlFormSubmit = () => {
 			e.preventDefault();
 
 			const submittedURL = getElement('urlField').value.trim().toLowerCase();
-			const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
 
+			const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
+			console.log('submittedURL: ' + formattedSubmittedURL);
 			// Validate URL field
 			const isUrlValid = validateUrlField();
 			// If URL is valid, proceed with form submission
 			if (isUrlValid) {
 				try {
 					const subscribedWhitelist = await getUserSubscribedWhitelist();
+					
+					// Step 1: Check if URL is in the whitelist
 					const { success, canonicalUrl, message } = isUrlInWhitelist(formattedSubmittedURL, subscribedWhitelist);
 
 					if (success) {
@@ -225,7 +228,7 @@ const handleSendUrlFormSubmit = () => {
 						});
 					}
 				} catch (error) {
-					console.error('Error checking URL against whitelist:', error);
+					console.log('Error checking URL against whitelist:', error);
 					showNotification(error.message, false);
 				}
 			}

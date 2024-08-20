@@ -27,5 +27,5 @@ function generateUrlPattern(canonicalUrl) {
 }
 module.exports = {
 	normalizeUrl,
-	generateUrlPattern,
+	generateUrlPattern
 };

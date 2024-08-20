@@ -11,7 +11,7 @@ const { storeCertificateForSite, fetchSSLCertificate } = require('../../sites/ut
 const { compressAndHashHTML } = require('../../sites/utils/cyber/urlToHash');
 const { normalizeUrl, generateUrlPattern } = require('../../sites/utils/urls/url');
 //auth
-const { generateToken, getTokenExpiration } = require('../utils/auth/authUtils');
+const { generateAccessToken, getTokenExpiration } = require('../utils/auth/authUtils');
 const roleMiddleware = require('../middleware/roleMiddleware');
 const redisClient = require('../utils/auth/redisClient');
 const bcrypt = require('bcrypt');
@@ -53,7 +53,7 @@ adminUserRouter.post('/login', async (req, res) => {
 			return res.status(401).send({ success: false, message: 'Authentication failed. Wrong password.' });
 		}
 
-		const token = generateToken({ _id: user._id, role: 'admin' });
+		const token = generateAccessToken({ _id: user._id, role: 'admin' });
 		res.json({ success: true, token });
 	} catch (error) {
 		res.status(500).send({ success: false, message: error.message });

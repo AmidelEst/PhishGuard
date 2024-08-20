@@ -6,9 +6,7 @@ const jwt = require('jsonwebtoken');
 // Generate Access Token (short-lived)
 const generateAccessToken = payload => {
 	accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
-	console.log('🚀 ~ generateAccessToken ~ accessToken:', accessToken);
 	return accessToken;
-	// return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' }); // Access token lasts 15 minutes
 };
 // Generate Refresh Token (long-lived)
 const generateRefreshToken = payload => {
@@ -17,10 +15,8 @@ const generateRefreshToken = payload => {
 
 // Verify Access Token
 const verifyAccessToken = async token => {
-	console.log('🚀 ~ verifyAccessToken ~ token:', token);
 	try {
 		const isBlacklisted = await redisClient.get(token);
-		console.log('🚀 ~ verifyAccessToken ~ isBlacklisted:', isBlacklisted);
 		if (isBlacklisted === 'blacklisted') {
 			throw new Error('Token is blacklisted');
 		}
