@@ -1,26 +1,22 @@
 //------------------------------------------------------//
 // src/features/users/middleware/roleMiddleware.js
 
-const { verifyToken } = require('../utils/auth/authUtils');
+const { verifyAccessToken } = require('../utils/auth/authUtils');
 
-const roleMiddleware = (roles) => {
+const roleMiddleware = roles => {
 	return async (req, res, next) => {
 		try {
 			const token = req.headers.authorization?.split(' ')[1];
 			if (!token) {
-				return res
-					.status(401)
-					.json({ success: false, message: 'Access Denied. No Token Provided.' });
+				return res.status(401).json({ success: false, message: 'Access Denied. No Token Provided.' });
 			}
-
 			// Await the token verification (handle async)
-			const user = await verifyToken(token);
-
+			const user = await verifyAccessToken(token);
 			// Ensure the user exists and has a valid role
 			if (!user || !roles.includes(user.role)) {
 				return res.status(403).json({
 					success: false,
-					message: 'Access Denied. Insufficient Permissions.',
+					message: 'Access Denied. Insufficient Permissions.'
 				});
 			}
 

@@ -1,13 +1,26 @@
+//-----------------------------------------------------
 // src/features/users/utils/auth/authUtils.js
 const redisClient = require('./redisClient');
 const jwt = require('jsonwebtoken');
 
-const generateToken = (payload) => {
-	return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
+// Generate Access Token (short-lived)
+const generateAccessToken = payload => {
+	accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+	console.log('🚀 ~ generateAccessToken ~ accessToken:', accessToken);
+	return accessToken;
+	// return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' }); // Access token lasts 15 minutes
 };
-const verifyToken = async (token) => {
+// Generate Refresh Token (long-lived)
+const generateRefreshToken = payload => {
+	return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' }); // Refresh token lasts 7 days
+};
+
+// Verify Access Token
+const verifyAccessToken = async token => {
+	console.log('🚀 ~ verifyAccessToken ~ token:', token);
 	try {
 		const isBlacklisted = await redisClient.get(token);
+		console.log('🚀 ~ verifyAccessToken ~ isBlacklisted:', isBlacklisted);
 		if (isBlacklisted === 'blacklisted') {
 			throw new Error('Token is blacklisted');
 		}
@@ -18,9 +31,27 @@ const verifyToken = async (token) => {
 		throw new Error(error.message);
 	}
 };
-const getTokenExpiration = (token) => {
+
+// Verify Refresh Token
+const verifyRefreshToken = async token => {
+	try {
+		const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+		return decoded;
+	} catch (error) {
+		throw new Error('Invalid refresh token');
+	}
+};
+
+// Get Token Expiration Time
+const getTokenExpiration = token => {
 	const decoded = jwt.decode(token);
 	return decoded.exp;
 };
 
-module.exports = { generateToken, verifyToken, getTokenExpiration };
+module.exports = {
+	generateAccessToken,
+	generateRefreshToken,
+	verifyAccessToken,
+	verifyRefreshToken,
+	getTokenExpiration
+};

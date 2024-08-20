@@ -1,0 +1,218 @@
+/* Reset */
+* {
+	margin: 0;
+	padding: 0;
+}
+
+.hidden {
+	display: none;
+}
+
+body {
+	width: 480px;
+	height: 480px;
+	display: flex;
+	align-items: center;
+	color: #e8eb15;
+}
+
+.container {
+	width: 100%;
+	height: 100%;
+	background-image: url('../images/128-pic.png');
+	background-size: cover;
+	background-position: center;
+}
+
+/* Headers */
+h1 {
+	font-weight: 600;
+	font-size: 25px;
+	margin-bottom: 3vh;
+}
+#mainPage .row {
+	margin-bottom: 20%; /* Pushes buttons up from the bottom */
+	width: 100%;
+	margin-top: 45%;
+	/* display: flex; */
+	/* justify-content: center; */
+}
+#mainPage .btn {
+	margin-bottom: 3%; /* Pushes buttons up from the bottom */
+	text-align: center;
+	margin-left: 2%;
+}
+
+/* Buttons */
+.btn {
+	transition-duration: 0.4s;
+	background-color: transparent;
+	color: #e8eb15;
+	border-color: #008cba;
+	font-size: 20px;
+	margin-top: 10px;
+}
+
+.btn:hover {
+	background-color: #008cba;
+	color: white;
+}
+
+.btn-right-corner {
+	position: absolute;
+	top: 8px;
+	right: 16px;
+	font-size: 18px;
+}
+
+.btn-down-left-corner {
+	position: absolute;
+	bottom: 30px;
+	font-size: 18px;
+	text-align: center;
+}
+/*--------------- form related-------------------------*/
+.form-group {
+	position: relative; /* Ensure the form-group is the parent element for absolute positioning */
+}
+
+/* Form Control */
+.form-control {
+	border-radius: 3px;
+	padding: 0 12px;
+	border: 1px solid #d1d1d1;
+}
+.invalid-feedback {
+	display: none; /* Hidden by default */
+	position: absolute;
+	top: 100%; /* Position it below the input */
+	right: 0;
+	width: max-content; /* Adjust width to content */
+	padding: 8px;
+	font-size: 12px;
+	background-color: #d93025; /* Red background for error */
+	color: white;
+	border-radius: 4px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+	z-index: 1;
+	white-space: nowrap; /* Prevent line breaks */
+}
+/* Arrow pointing to the input */
+.invalid-feedback::before {
+	content: '';
+	position: absolute;
+	top: -6px;
+	right: 10px; /* Adjust position according to your design */
+	border-width: 6px;
+	border-style: solid;
+	border-color: transparent transparent #d93025 transparent;
+}
+.invalid-feedback.above::before {
+	top: auto;
+	bottom: -6px;
+	border-color: #d93025 transparent transparent transparent;
+}
+
+/* Error Messages */
+/* .invalid-feedback {
+	background-color: rgba(255, 0, 0, 0.8);
+	color: #fff;
+	padding: 5px;
+	border-radius: 5px;
+	font-size: 12pt;
+	transform: translateX(70%) translateY(5%);
+	max-width: fit-content;;
+	white-space: nowrap;
+} */
+
+/* Invalid Input Styling */
+/* .is-invalid {
+	border-color: #d93025;
+} */
+.is-invalid + .invalid-feedback {
+	display: block;
+}
+
+/* Notification Styling */
+.notification {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	padding: 20px;
+	border-radius: 8px;
+	color: white;
+	font-size: 18px;
+	line-height: 1.5;
+	z-index: 1000;
+	width: 300px;
+	background-color: #4caf50;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#close-notification-button {
+	background-color: #ffeb3b;
+	color: #000;
+	border: 2px solid #4caf50;
+	border-radius: 4px;
+	padding: 5px 10px;
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 16px;
+	margin-top: 10px;
+}
+
+#close-notification-button:hover {
+	background-color: green;
+	color: yellow;
+}
+
+.notification.success {
+	background-color: green;
+}
+
+.notification.error {
+	background-color: red;
+}
+
+/* Backdrop Styling */
+.backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 999;
+	display: none;
+}
+
+#passwordHelpBlock {
+	color: #d1d1d1;
+}
+
+/* scrollable whitelist */
+h2 {
+	margin-top: 10px; /* Adjust the value as needed */
+}
+
+/* Scrollable whitelist container */
+#whitelistUrlsContainer {
+	max-height: 220px;
+	overflow-y: auto;
+	padding-right: 3%;
+}
+
+/* Optional: Customize scrollbar appearance */
+#whitelistUrlsContainer::-webkit-scrollbar {
+	width: 8px;
+}
+
+#whitelistUrlsContainer::-webkit-scrollbar-thumb {
+	background-color: #cccccc;
+	border-radius: 4px;
+}
+
+#whitelistUrlsContainer::-webkit-scrollbar-thumb:hover {
+	background-color: #aaaaaa;
+}

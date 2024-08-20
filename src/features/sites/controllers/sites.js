@@ -12,6 +12,7 @@ const {
 	compareCertificates,
 	fetchSSLCertificate,
 } = require('../utils/certificate/certificate');
+
 router.post('/check_cv', async (req, res) => {
 	const { whitelistUrl, submittedUrl } = req.body;
 

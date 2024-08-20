@@ -11,13 +11,14 @@ const regularUserSchema = new Schema(
 		subscribedWhitelist: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Whitelists',
-			required: true,
+			required: true
 		},
 		securityLevel: {
 			type: String,
-			enum: ['Low', 'Medium', 'High', 'Highest'],
+			enum: ['basic', 'medium', 'high'],
 			default: 'Medium',
-		},
+			required: true
+		}
 	},
 	{ timestamps: true }
 );

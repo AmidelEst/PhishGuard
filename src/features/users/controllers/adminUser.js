@@ -2,16 +2,15 @@
 // src/features/users/controllers/adminUser.js
 const express = require('express');
 const adminUserRouter = express.Router();
+// models
 const AdminUser = require('../models/adminUser');
 const Whitelist = require('../../sites/models/whitelist');
 const MonitoredSite = require('../../sites/models/monitoredSite');
-const {
-	storeCertificateForSite,
-	fetchSSLCertificate,
-} = require('../../sites/utils/certificate/certificate');
+//logics
+const { storeCertificateForSite, fetchSSLCertificate } = require('../../sites/utils/certificate/certificate');
 const { compressAndHashHTML } = require('../../sites/utils/cyber/urlToHash');
 const { normalizeUrl, generateUrlPattern } = require('../../sites/utils/urls/url');
-
+//auth
 const { generateToken, getTokenExpiration } = require('../utils/auth/authUtils');
 const roleMiddleware = require('../middleware/roleMiddleware');
 const redisClient = require('../utils/auth/redisClient');
@@ -33,7 +32,7 @@ adminUserRouter.post('/register', async (req, res) => {
 
 		res.status(201).send({
 			success: true,
-			message: 'User registered successfully',
+			message: 'User registered successfully'
 		});
 	} catch (error) {
 		res.status(500).send({ success: false, message: error.message });
@@ -46,16 +45,12 @@ adminUserRouter.post('/login', async (req, res) => {
 		const user = await AdminUser.findOne({ email });
 
 		if (!user) {
-			return res
-				.status(401)
-				.send({ success: false, message: 'Authentication failed. User not found.' });
+			return res.status(401).send({ success: false, message: 'Authentication failed. User not found.' });
 		}
 
 		const isMatch = await bcrypt.compare(password, user.password);
 		if (!isMatch) {
-			return res
-				.status(401)
-				.send({ success: false, message: 'Authentication failed. Wrong password.' });
+			return res.status(401).send({ success: false, message: 'Authentication failed. Wrong password.' });
 		}
 
 		const token = generateToken({ _id: user._id, role: 'admin' });
@@ -65,7 +60,7 @@ adminUserRouter.post('/login', async (req, res) => {
 	}
 });
 // 2) TOKEN - logout - adminUser
-adminUserRouter.post('/logout',roleMiddleware(['admin']), async (req, res) => {
+adminUserRouter.post('/logout', roleMiddleware(['admin']), async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) {
 		return res.status(400).json({ success: false, message: 'No token provided' });
@@ -98,7 +93,7 @@ adminUserRouter.post('/createWhitelist', roleMiddleware(['admin']), async (req, 
 
 		res.status(201).send({
 			success: true,
-			message: 'Whitelist created successfully',
+			message: 'Whitelist created successfully'
 		});
 	} catch (error) {
 		res.status(500).send({ success: false, message: error.message });
@@ -152,7 +147,7 @@ adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (re
 				canonicalUrl,
 				urlPattern, // Store the pattern that matches variations of the site URL
 				DOM: hashedResult.content,
-				minHash: hashedResult.minHash,
+				minHash: hashedResult.minHash
 			});
 			await newMonitoredSite.save();
 
@@ -161,10 +156,7 @@ adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (re
 				const certificate = await fetchSSLCertificate(canonicalUrl);
 				await storeCertificateForSite(newMonitoredSite._id, certificate); // Link the certificate to the site
 			} catch (error) {
-				console.error(
-					`Failed to fetch SSL certificate for ${siteName}:`,
-					error.message
-				);
+				console.error(`Failed to fetch SSL certificate for ${siteName}:`, error.message);
 				errors.push({ siteName, message: 'Failed to fetch SSL certificate' });
 			}
 
@@ -181,7 +173,7 @@ adminUserRouter.post('/addSiteToWhitelist', roleMiddleware(['admin']), async (re
 			success: true,
 			message: 'Sites processed',
 			addedSites,
-			errors,
+			errors
 		});
 	} catch (error) {
 		console.error('Error adding sites to whitelist:', error.message);

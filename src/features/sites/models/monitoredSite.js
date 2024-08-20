@@ -10,13 +10,12 @@ const monitoredSiteSchema = new Schema(
 		// Canonical URL for the monitored site
 		siteName: { type: String, required: true },
 		canonicalUrl: { type: String, required: true }, // Updated field
-
 		// Pattern to match variations of the site URL
 		urlPattern: { type: String, required: true },
 		DOM: { type: String },
 		minHash: { type: [Number] },
 		// Reference to the SSL certificate
-		certificate: { type: Schema.Types.ObjectId, ref: 'Certificate' },
+		certificate: { type: Schema.Types.ObjectId, ref: 'Certificate' }
 	},
 	{ timestamps: true }
 );
