@@ -11,6 +11,19 @@ export const extractBaseUrl = url => {
 		return null;
 	}
 };
+
+// Utility function to normalize a URL
+export function normalizeUrl(url) {
+	try {
+		const lowerUrl = url.toLowerCase();
+		console.log(lowerUrl);
+		const parsedUrl = new URL(lowerUrl);
+		return parsedUrl.origin;
+	} catch (error) {
+		console.log('Invalid URL:', error.message);
+		return null;
+	}
+}
 // Format submitted URL with the correct prefix if missing
 export const formatSubmittedUrl = url => {
 	if (!/^https?:\/\//i.test(url)) {

@@ -15,7 +15,7 @@ import {
 	checkMinMash,
 	checkCertificate
 } from './api.js';
-import { formatSubmittedUrl, isUrlInWhitelist } from './urlUtils.js';
+import { formatSubmittedUrl, isUrlInWhitelist, normalizeUrl } from './urlUtils.js';
 import { showNotification, closeNotification } from '../domHandlers/notification.js';
 
 //* Setup navigation for page interactions //!fetch and populate
@@ -49,7 +49,7 @@ const handleLoginFormSubmit = () => {
 			loginUser(email, password, response => {
 				if (response.success) {
 					navigateToPage('sendUrlPage');
-					// Retrieve the subscribedWhitelistId and fetch the corresponding whitelist
+					// Retrieve the subWhitelistId + fetch the corresponding whitelist
 					fetchSubscribedWhitelistId(subscribedWhitelistId => {
 						if (subscribedWhitelistId) {
 							fetchAndPopulateWhitelistUrls(subscribedWhitelistId); // Populate the URLs
@@ -88,18 +88,19 @@ const handleSendUrlFormSubmit = () => {
 		sendUrlForm.addEventListener('submit', async e => {
 			e.preventDefault();
 
-			const submittedURL = getElement('urlField').value.trim().toLowerCase();
+			let submittedURL = getElement('urlField').value.trim().toLowerCase();
 			// Validate URL field
 			const isUrlValid = validateUrlField();
 
 			// If URL is valid, proceed with form submission
 			if (isUrlValid) {
 				try {
-					const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
+					submittedURL = normalizeUrl(submittedURL);
+					submittedURL = formatSubmittedUrl(submittedURL);
 					const subscribedWhitelist = await getUserSubscribedWhitelist();
 
 					// Step 1: Check if URL is in the whitelist
-					const { success, canonicalUrl } = isUrlInWhitelist(formattedSubmittedURL, subscribedWhitelist);
+					const { success, canonicalUrl } = isUrlInWhitelist(submittedURL, subscribedWhitelist);
 
 					if (success) {
 						showNotification('URL is in subscribed whitelist.', success);
@@ -108,7 +109,7 @@ const handleSendUrlFormSubmit = () => {
 						return;
 					}
 					// Step 2:
-					checkCertificate(canonicalUrl, formattedSubmittedURL);
+					checkCertificate(canonicalUrl, submittedURL);
 					// Step 3:
 					checkMinMash(canonicalUrl);
 				} catch (error) {

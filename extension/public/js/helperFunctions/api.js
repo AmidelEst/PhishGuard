@@ -78,7 +78,7 @@ export const checkMinMash = async formattedSubmittedURL => {
 export const fetchSubscribedWhitelistId = callback => {
 	chrome.storage.local.get('subscribedWhitelistId', result => {
 		if (result.subscribedWhitelistId) {
-			callback(result.subscribedWhitelistId); // Pass the ID to the callback
+			callback(result.subscribedWhitelistId);
 		} else {
 			console.log('No subscribedWhitelistId found in storage');
 			callback(null); // Handle missing ID case

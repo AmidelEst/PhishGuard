@@ -60,7 +60,7 @@ export const validateUrlField = () => {
 	}
 
 	// Allow URLs with or without http/https
-	const urlPattern = /^[\w-]+(\.[\w-]+)+([\w-./?%&=]*)?$/i;
+	const urlPattern = /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)(\/[\w\-./?%&=]*)?$/i;
 
 	const isValid = urlPattern.test(urlValue);
 
