@@ -1,5 +1,5 @@
 //------------------------------------------------------//
-// public/js/domHandlers/validation.js
+// extension/public/js/domHandlers/validation.js
 import { getElement } from './getElement.js';
 
 // Helper function to hide all password feedback messages

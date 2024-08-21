@@ -1,5 +1,5 @@
 //------------------------------------------------------//
-// public/js/helperFunctions/urlUtils.js
+// extension/public/js/helperFunctions/urlUtils.js
 //
 export const extractBaseUrl = url => {
 	try {
@@ -21,12 +21,11 @@ export const formatSubmittedUrl = url => {
 
 // Adjust isUrlInWhitelist to handle an array of strings (URLs)
 export function isUrlInWhitelist(submittedUrl, whitelist) {
-	if (!Array.isArray(whitelist)) {
-		// Check that the whitelist is an array of strings
-		console.error('Invalid whitelist structure:', whitelist);
-		return { success: false, message: 'Invalid whitelist structure' };
-	}
-
+	// if (!Array.isArray(whitelist)) {
+	// 	// Check that the whitelist is an array of strings
+	// 	console.error('Invalid whitelist structure:', whitelist);
+	// 	return { success: false, message: 'Invalid whitelist structure' };
+	// }
 	console.log('SubmittedUrl:' + submittedUrl);
 
 	if (!submittedUrl) {

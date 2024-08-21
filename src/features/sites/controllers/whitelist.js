@@ -1,5 +1,5 @@
 //------------------------------------------------------//
-// src\features\sites\controllers\whitelist.js
+// src/features/sites/controllers/whitelist.js
 const fs = require('fs');
 const path = require('path');
 const MonitoredSite = require('../');
@@ -41,7 +41,7 @@ async function addSiteToWhitelist(site) {
 				siteName: siteName,
 				url: url,
 				minHash: minHash,
-				content: content,
+				content: content
 			},
 			{ upsert: true, new: true } // Create a new document if it doesn't exist, return the updated document
 		);

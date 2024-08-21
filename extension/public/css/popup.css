@@ -113,22 +113,6 @@ h1 {
 	border-color: #d93025 transparent transparent transparent;
 }
 
-/* Error Messages */
-/* .invalid-feedback {
-	background-color: rgba(255, 0, 0, 0.8);
-	color: #fff;
-	padding: 5px;
-	border-radius: 5px;
-	font-size: 12pt;
-	transform: translateX(70%) translateY(5%);
-	max-width: fit-content;;
-	white-space: nowrap;
-} */
-
-/* Invalid Input Styling */
-/* .is-invalid {
-	border-color: #d93025;
-} */
 .is-invalid + .invalid-feedback {
 	display: block;
 }
@@ -203,7 +187,7 @@ h2 {
 	padding-right: 3%;
 }
 
-/* Optional: Customize scrollbar appearance */
+/* Customize scrollbar appearance */
 #whitelistUrlsContainer::-webkit-scrollbar {
 	width: 8px;
 }

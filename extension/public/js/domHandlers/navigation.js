@@ -1,5 +1,5 @@
 //------------------------------------------------------//
-// public/js/domHandlers/navigation.js
+// extension/public/js/domHandlers/navigation.js
 import { getElement } from './getElement.js';
 
 // Navigates to the specified page, hiding all others

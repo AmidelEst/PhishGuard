@@ -1,8 +1,8 @@
 //------------------------------------------------------//
-//  public/js/eventHandlers/eventListeners.js
+//  extension/public/js/helperFunctions/eventListeners.js
 import { getElement } from '../domHandlers/getElement.js';
 import { navigateToPage } from '../domHandlers/navigation.js';
-import { validateEmailField, validatePassword, validateUrlField, validateField } from '../domHandlers/validation.js';
+import { validatePassword, validateUrlField } from '../domHandlers/validation.js';
 import {
 	loginUser,
 	registerUser,
@@ -10,7 +10,8 @@ import {
 	fetchAndPopulateWhitelistUrls,
 	fetchAndPopulateAdmins,
 	fetchAndPopulateAdminsWhitelists,
-	getUserSubscribedWhitelist
+	getUserSubscribedWhitelist,
+	checkCertificate
 } from './api.js';
 import { formatSubmittedUrl, isUrlInWhitelist } from './urlUtils.js';
 import { showNotification, closeNotification } from '../domHandlers/notification.js';
@@ -173,7 +174,6 @@ const handleLoginFormSubmit = () => {
 					// Retrieve the subscribedWhitelistId and fetch the corresponding whitelist
 					fetchSubscribedWhitelistId(subscribedWhitelistId => {
 						if (subscribedWhitelistId) {
-							console.log('🚀 ~ handleLoginFormSubmit ~ subscribedWhitelistId:', subscribedWhitelistId);
 							fetchAndPopulateWhitelistUrls(subscribedWhitelistId); // Populate the URLs
 						} else {
 							showNotification('No subscribed whitelist found', false);
@@ -195,33 +195,23 @@ const handleSendUrlFormSubmit = () => {
 			e.preventDefault();
 
 			const submittedURL = getElement('urlField').value.trim().toLowerCase();
-
-			const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
-			console.log('submittedURL: ' + formattedSubmittedURL);
 			// Validate URL field
 			const isUrlValid = validateUrlField();
+
 			// If URL is valid, proceed with form submission
 			if (isUrlValid) {
 				try {
+					const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
 					const subscribedWhitelist = await getUserSubscribedWhitelist();
-					
+
 					// Step 1: Check if URL is in the whitelist
-					const { success, canonicalUrl, message } = isUrlInWhitelist(formattedSubmittedURL, subscribedWhitelist);
+					const { success, canonicalUrl } = isUrlInWhitelist(formattedSubmittedURL, subscribedWhitelist);
 
 					if (success) {
-						showNotification('URL is in subscribed whitelist.', true);
-						// Send URL for certificate check if it's in the whitelist
-						chrome.runtime.sendMessage(
-							{
-								message: 'checkCertificate',
-								payload: { whitelistUrl: canonicalUrl, submittedUrl: formattedSubmittedURL }
-							},
-							response => {
-								showNotification(response.message, response.success);
-							}
-						);
+						showNotification('URL is in subscribed whitelist.', success);
+						// Step 2:
+						checkCertificate(canonicalUrl, formattedSubmittedURL);
 					} else {
-						showNotification(message, false);
 						// Send URL for further processing
 						chrome.runtime.sendMessage({ message: 'checkUrl', payload: { url: formattedSubmittedURL } }, response => {
 							showNotification(response.message, response.success);
@@ -236,7 +226,7 @@ const handleSendUrlFormSubmit = () => {
 	}
 };
 // Handles logout action
-const handleLogout = () => {
+export const handleLogout = () => {
 	const logOutBtn = getElement('logOutBtn');
 	if (logOutBtn) {
 		logOutBtn.addEventListener('click', () => {

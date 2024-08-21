@@ -1,6 +1,8 @@
 //------------------------------------------------------//
-// public/js/helperFunctions/api.js
+// extension/public/js/helperFunctions/api.js
 import { showNotification } from '../domHandlers/notification.js';
+import { navigateToPage } from '../domHandlers/navigation.js';
+import { handleLogout } from '../helperFunctions/eventListeners.js';
 import { populateAdminDropdown, populateWhitelistsDropdown, populateWhitelistUrls } from '../domHandlers/dropdown.js';
 
 // Standard function to handle API requests
@@ -88,21 +90,62 @@ export const getUserSubscribedWhitelist = () => {
 	});
 };
 // Fetch the subscribed whitelist URLs and populate them into the UI
-export const fetchAndPopulateWhitelistUrls = subscribedWhitelistId => {
-	console.log('subscribedWhitelistId:', subscribedWhitelistId); // Debugging
+export const fetchAndPopulateWhitelistUrls = async subscribedWhitelistId => {
+	try {
+		// Send message to the background to fetch the URLs
+		const response = await sendMessageToBackground({
+			message: 'fetchSubscribedWhitelist',
+			subscribedWhitelistId: subscribedWhitelistId
+		});
 
-	return sendMessageToBackground({
-		message: 'fetchSubscribedWhitelist',
-		subscribedWhitelistId: subscribedWhitelistId
-	})
-		.then(response => {
+		// Handle success
+		if (response.success) {
 			const urls = response.monitoredSites || [];
 			populateWhitelistUrls(urls); // Populate the URLs into the UI
 			return urls;
-		})
-		.catch(error => {
-			console.log('Failed to fetch monitored sites:' + error);
-			showNotification('Failed to fetch monitored sites.', false);
+		} else {
+			// If JWT expired or any other error
+			if (response.message === 'jwt expired' || response.statusCode === 403) {
+				showNotification('Session expired. Logging out...', false);
+				handleLogout(); // Perform the logout operation
+				navigateToPage('mainPage'); // Redirect to the main page (or login)
+			} else {
+				showNotification('Failed to fetch monitored sites.', false);
+			}
 			return [];
+		}
+	} catch (error) {
+		console.log('Failed to fetch monitored sites:', error);
+		showNotification('Failed to fetch monitored sites.', false);
+		return [];
+	}
+};
+
+export const checkCertificate = async (canonicalUrl, formattedSubmittedURL) => {
+	try {
+		// Send message to the background to fetch the URLs
+		const response = await sendMessageToBackground({
+			message: 'checkCertificate',
+			payload: { whitelistUrl: canonicalUrl, submittedUrl: formattedSubmittedURL }
 		});
+		showNotification(response.message, response.success);
+	} catch (error) {
+		console.log('Failed to checkCertificate:', error);
+		showNotification('Failed to checkCertificate.', false);
+		return [];
+	}
+};
+
+export const checkUrl = async formattedSubmittedURL => {
+	try {
+		// Send message to the background to fetch the URLs
+		const response = await sendMessageToBackground({
+			message: 'checkUrl',
+			payload: { url: formattedSubmittedURL }
+		});
+		showNotification(response.message, response.success);
+	} catch (error) {
+		console.log('Failed to checkUrl:', error);
+		showNotification('Failed to checkUrl.', false);
+	}
 };

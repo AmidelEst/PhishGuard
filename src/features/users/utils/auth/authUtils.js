@@ -27,7 +27,6 @@ const verifyAccessToken = async token => {
 		throw new Error(error.message);
 	}
 };
-
 // Verify Refresh Token
 const verifyRefreshToken = async token => {
 	try {

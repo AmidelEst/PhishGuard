@@ -1,17 +1,14 @@
 //------------------------------------------------------//
-// src\features\sites\controllers\sites.js
+// src/features/sites/controllers/sites.js
 const express = require('express');
 const router = express.Router();
 const MonitoredSite = require('../models/monitoredSite');
 const {
 	fetchAndHashSubmittedURL,
 	fetchWhitelistedSites,
-	compareMinHashes,
+	compareMinHashes
 } = require('../utils/cyber/similarityScoring');
-const {
-	compareCertificates,
-	fetchSSLCertificate,
-} = require('../utils/certificate/certificate');
+const { compareCertificates, fetchSSLCertificate } = require('../utils/certificate/certificate');
 
 router.post('/check_cv', async (req, res) => {
 	const { whitelistUrl, submittedUrl } = req.body;
@@ -22,29 +19,24 @@ router.post('/check_cv', async (req, res) => {
 
 		// Find the monitored site by its canonical URL (whitelist URL)
 		const monitoredSite = await MonitoredSite.findOne({
-			canonicalUrl: whitelistUrl,
+			canonicalUrl: whitelistUrl
 		}).populate('certificate');
-		console.log(monitoredSite.certificate);
 
 		if (!monitoredSite || !monitoredSite.certificate) {
-			console.log('No certificate found for this monitored site.');
 			return res.status(404).json({
 				success: false,
-				message: 'No certificate found for this monitored site.',
+				message: 'No certificate found for this monitored site.'
 			});
 		}
 		console.log(monitoredSite.certificate, newCertificate);
 
 		// Compare the stored certificate with the newly fetched certificate
-		const certificatesComparisonResult = await compareCertificates(
-			monitoredSite.certificate,
-			newCertificate
-		);
+		const certificatesComparisonResult = await compareCertificates(monitoredSite.certificate, newCertificate);
 
 		if (!certificatesComparisonResult) {
 			return res.status(500).json({
 				success: false,
-				message: 'Failed to process submitted URL.',
+				message: 'Failed to process submitted URL.'
 			});
 		}
 
@@ -52,19 +44,19 @@ router.post('/check_cv', async (req, res) => {
 		if (certificatesComparisonResult) {
 			return res.status(200).json({
 				success: true,
-				message: 'Submitted link is CV safe.',
+				message: 'Submitted link is CV safe.'
 			});
 		} else {
 			return res.status(200).json({
 				success: false,
-				message: 'Phishing Attempt! Do not enter the site!',
+				message: 'Phishing Attempt! Do not enter the site!'
 			});
 		}
 	} catch (err) {
 		console.error('Error processing certificates:', err);
 		return res.status(500).json({
 			success: false,
-			message: err.message,
+			message: err.message
 		});
 	}
 });
@@ -74,24 +66,17 @@ router.post('/check_url', async (req, res) => {
 	// Fetch and hash the submitted URL
 	const submittedResult = await fetchAndHashSubmittedURL(url);
 	if (!submittedResult) {
-		return res
-			.status(500)
-			.json({ success: false, message: 'Failed to process submitted URL.' });
+		return res.status(500).json({ success: false, message: 'Failed to process submitted URL.' });
 	}
 
 	// Fetch the whitelisted sites
 	const whitelistedSites = await fetchWhitelistedSites();
 	if (!whitelistedSites || whitelistedSites.length === 0) {
-		return res
-			.status(500)
-			.json({ success: false, message: 'No whitelisted sites found.' });
+		return res.status(500).json({ success: false, message: 'No whitelisted sites found.' });
 	}
 
 	// Compare the MinHash signatures
-	const { similarity, mostSimilarSite } = compareMinHashes(
-		submittedResult,
-		whitelistedSites
-	);
+	const { similarity, mostSimilarSite } = compareMinHashes(submittedResult, whitelistedSites);
 
 	// Determine response based on similarity score
 	const similarityThreshold = 0.8;
@@ -100,13 +85,13 @@ router.post('/check_url', async (req, res) => {
 		return res.status(200).json({
 			success: true,
 			message: `High similarity of ${similarity},\nwith site: ${mostSimilarSite.siteName}\n`,
-			similarity,
+			similarity
 		});
 	} else {
 		return res.status(200).json({
 			success: false,
 			message: 'Low similarity score.',
-			similarity,
+			similarity
 		});
 	}
 });

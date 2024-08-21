@@ -114,10 +114,8 @@ regularUserRouter.get('/whitelist/:id/monitored-sites', roleMiddleware(['user'])
 regularUserRouter.get('/details', roleMiddleware(['user']), async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) return res.sendStatus(401);
-	console.log('🚀 ~ regularUserRouter.get ~ token:', res);
 	RegularUser.findById(res.user._id, (err, foundUser) => {
 		if (err || !foundUser) return res.status(404).send({ success: false, message: 'User not found.' });
-
 		res.send({ success: true, email: foundUser.email, securityLevel: foundUser.securityLevel });
 	});
 });
@@ -144,9 +142,9 @@ regularUserRouter.get('/security-level', roleMiddleware(['user']), async (req, r
 //^  2) TOKEN - logout
 regularUserRouter.post('/logout', async (req, res) => {
 	const token = req.headers.authorization?.split(' ')[1];
-	console.log('🚀 ~ regularUserRouter.post ~ token:', token);
 	const { refreshToken } = req.body;
-	console.log('🚀 ~ regularUserRouter.post ~ refreshToken:', refreshToken);
+	console.log('🚀 ~ logout ~ token:', token);
+	console.log('🚀 ~ logout ~ refreshToken:', refreshToken);
 
 	if (!token || !refreshToken) {
 		return res.status(400).json({ success: false, message: 'No token provided' });
