@@ -5,19 +5,21 @@ import { navigateToPage } from '../domHandlers/navigation.js';
 import { validatePassword, validateUrlField } from '../domHandlers/validation.js';
 import {
 	loginUser,
+	logoutUser,
 	registerUser,
 	fetchSubscribedWhitelistId,
 	fetchAndPopulateWhitelistUrls,
 	fetchAndPopulateAdmins,
 	fetchAndPopulateAdminsWhitelists,
 	getUserSubscribedWhitelist,
+	checkMinMash,
 	checkCertificate
 } from './api.js';
 import { formatSubmittedUrl, isUrlInWhitelist } from './urlUtils.js';
 import { showNotification, closeNotification } from '../domHandlers/notification.js';
 
-// Setup navigation for page interactions //!fetch and populate
-const setupNavigationListeners = () => {
+//* Setup navigation for page interactions //!fetch and populate
+const setupButtonsListeners = () => {
 	// Close notification
 	getElement('close-notification-button').addEventListener('click', () => {
 		closeNotification();
@@ -32,8 +34,93 @@ const setupNavigationListeners = () => {
 	getElement('goBackBtnFromRegister').addEventListener('click', () => navigateToPage('mainPage'));
 	getElement('goBackBtnFromLogin').addEventListener('click', () => navigateToPage('mainPage'));
 };
-// Helper function to set up form validation
-const setupDynamicValidation = () => {
+// ?---------Token Assigning Process--------------//
+//? 1) login Handles  form submission and validation
+const handleLoginFormSubmit = () => {
+	const loginForm = getElement('loginForm');
+	if (loginForm) {
+		loginForm.addEventListener('submit', e => {
+			e.preventDefault();
+
+			const email = getElement('loginEmail').value;
+			const password = getElement('loginPassword').value;
+
+			//? Handle login process
+			loginUser(email, password, response => {
+				if (response.success) {
+					navigateToPage('sendUrlPage');
+					// Retrieve the subscribedWhitelistId and fetch the corresponding whitelist
+					fetchSubscribedWhitelistId(subscribedWhitelistId => {
+						if (subscribedWhitelistId) {
+							fetchAndPopulateWhitelistUrls(subscribedWhitelistId); // Populate the URLs
+						} else {
+							showNotification('No subscribed whitelist found', false);
+						}
+					});
+				} else {
+					showNotification(response.message, response.success);
+				}
+			});
+		});
+	}
+};
+//? 2) Handles logout action
+export const handleLogout = () => {
+	const logOutBtn = getElement('logOutBtn');
+	if (logOutBtn) {
+		logOutBtn.addEventListener('click', () => {
+			//? Handle login process
+			logoutUser(response => {
+				if (response.success) {
+					navigateToPage('mainPage');
+				} else {
+					showNotification(response.message, response.success);
+				}
+			});
+		});
+	}
+};
+//!----------ALGORITHMS - PRIVATE---------//
+//! Handles URL form submission and processing
+const handleSendUrlFormSubmit = () => {
+	const sendUrlForm = getElement('sendUrlForm');
+	if (sendUrlForm) {
+		sendUrlForm.addEventListener('submit', async e => {
+			e.preventDefault();
+
+			const submittedURL = getElement('urlField').value.trim().toLowerCase();
+			// Validate URL field
+			const isUrlValid = validateUrlField();
+
+			// If URL is valid, proceed with form submission
+			if (isUrlValid) {
+				try {
+					const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
+					const subscribedWhitelist = await getUserSubscribedWhitelist();
+
+					// Step 1: Check if URL is in the whitelist
+					const { success, canonicalUrl } = isUrlInWhitelist(formattedSubmittedURL, subscribedWhitelist);
+
+					if (success) {
+						showNotification('URL is in subscribed whitelist.', success);
+					} else {
+						showNotification('URL is in NOT whitelist.', false);
+						return;
+					}
+					// Step 2:
+					checkCertificate(canonicalUrl, formattedSubmittedURL);
+					// Step 3:
+					checkMinMash(canonicalUrl);
+				} catch (error) {
+					console.log('Error ' + error);
+					showNotification(error.message, false);
+				}
+			}
+		});
+	}
+};
+//* 0) Helper function to set up form validation
+const setupRegisterDynamicValidation = () => {
 	const registerForm = document.getElementById('registerForm');
 
 	if (!registerForm) return;
@@ -81,7 +168,7 @@ const setupDynamicValidation = () => {
 		securityLevelDropdown.classList.toggle('is-invalid', !isValid);
 	});
 };
-
+//* 0) Register Handles  form submission and validation
 const handleRegisterFormSubmit = () => {
 	const registerForm = document.getElementById('registerForm');
 
@@ -152,97 +239,12 @@ const handleRegisterFormSubmit = () => {
 		});
 	}
 };
-
-// Initialize dynamic validation
-setupDynamicValidation();
+//* Initialize Register dynamic validation
+setupRegisterDynamicValidation();
 handleRegisterFormSubmit();
-
-// Handles login form submission and validation
-const handleLoginFormSubmit = () => {
-	const loginForm = getElement('loginForm');
-	if (loginForm) {
-		loginForm.addEventListener('submit', e => {
-			e.preventDefault();
-
-			const email = getElement('loginEmail').value;
-			const password = getElement('loginPassword').value;
-
-			// Handle login process
-			loginUser(email, password, response => {
-				if (response.success) {
-					navigateToPage('sendUrlPage');
-					// Retrieve the subscribedWhitelistId and fetch the corresponding whitelist
-					fetchSubscribedWhitelistId(subscribedWhitelistId => {
-						if (subscribedWhitelistId) {
-							fetchAndPopulateWhitelistUrls(subscribedWhitelistId); // Populate the URLs
-						} else {
-							showNotification('No subscribed whitelist found', false);
-						}
-					});
-				} else {
-					showNotification(response.message, response.success);
-				}
-			});
-		});
-	}
-};
-//^----------WITH TOKEN ACTIONS - PRIVATE--------------------
-// Handles URL form submission and processing
-const handleSendUrlFormSubmit = () => {
-	const sendUrlForm = getElement('sendUrlForm');
-	if (sendUrlForm) {
-		sendUrlForm.addEventListener('submit', async e => {
-			e.preventDefault();
-
-			const submittedURL = getElement('urlField').value.trim().toLowerCase();
-			// Validate URL field
-			const isUrlValid = validateUrlField();
-
-			// If URL is valid, proceed with form submission
-			if (isUrlValid) {
-				try {
-					const formattedSubmittedURL = formatSubmittedUrl(submittedURL);
-					const subscribedWhitelist = await getUserSubscribedWhitelist();
-
-					// Step 1: Check if URL is in the whitelist
-					const { success, canonicalUrl } = isUrlInWhitelist(formattedSubmittedURL, subscribedWhitelist);
-
-					if (success) {
-						showNotification('URL is in subscribed whitelist.', success);
-						// Step 2:
-						checkCertificate(canonicalUrl, formattedSubmittedURL);
-					} else {
-						// Send URL for further processing
-						chrome.runtime.sendMessage({ message: 'checkUrl', payload: { url: formattedSubmittedURL } }, response => {
-							showNotification(response.message, response.success);
-						});
-					}
-				} catch (error) {
-					console.log('Error checking URL against whitelist:', error);
-					showNotification(error.message, false);
-				}
-			}
-		});
-	}
-};
-// Handles logout action
-export const handleLogout = () => {
-	const logOutBtn = getElement('logOutBtn');
-	if (logOutBtn) {
-		logOutBtn.addEventListener('click', () => {
-			chrome.runtime.sendMessage({ message: 'logout' }, response => {
-				if (response.success) {
-					navigateToPage('mainPage');
-				}
-				showNotification(response.message, response.success);
-			});
-		});
-	}
-};
-//-------------------------
-// Main setup function to initialize all event listeners
+//* Initialize ALL event listeners
 export const setupEventListeners = () => {
-	setupNavigationListeners();
+	setupButtonsListeners();
 	handleRegisterFormSubmit();
 	handleLoginFormSubmit();
 	handleSendUrlFormSubmit();

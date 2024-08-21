@@ -1,81 +1,81 @@
-// src\features\sites\utils\certificate\certificate.js
+// src/features/sites/utils/certificate
 const Certificate = require('../../models/certificate');
 const MonitoredSite = require('../../models/monitoredSite');
 const https = require('https');
 const { AbortController } = require('abort-controller');
 //
 async function fetchSSLCertificate(domain) {
+	const maxRetries = 3;
+	let attempts = 0;
+
+	while (attempts < maxRetries) {
+		attempts++;
+
+		try {
+			const certificate = await attemptFetchSSLCertificate(domain);
+
+			if (certificate) {
+				return certificate;
+			} else {
+				console.warn(`Attempt ${attempts} failed: No certificate found for ${domain}.`);
+			}
+		} catch (error) {
+			console.error(`Attempt ${attempts} failed for ${domain}: ${error.message}`);
+		}
+	}
+
+	throw new Error(`Failed to fetch SSL certificate for ${domain} after ${maxRetries} attempts.`);
+}
+
+async function attemptFetchSSLCertificate(domain) {
 	return new Promise((resolve, reject) => {
 		try {
-			// Extract the hostname from the URL
 			const { hostname } = new URL(domain);
-			// Create an AbortController to handle timeouts
+
 			const controller = new AbortController();
-			const timeout = setTimeout(() => {
-				controller.abort(); // Abort the request after 5 seconds
-			}, 5000);
+			const timeout = setTimeout(() => controller.abort(), 5000);
 
 			const options = {
 				host: hostname,
 				port: 443,
 				method: 'GET',
-				rejectUnauthorized: false, // Allow self-signed or invalid certificates
-				signal: controller.signal // Attach the signal from the AbortController
+				rejectUnauthorized: false,
+				signal: controller.signal
 			};
 
 			const req = https.request(options, res => {
-				clearTimeout(timeout); // Clear the timeout when the request completes successfully
+				clearTimeout(timeout);
 
-				// Retrieve the SSL certificate from the connection
 				const certificate = res.socket.getPeerCertificate();
 
 				if (certificate && certificate.subject && certificate.subject.CN) {
-					// Check if the certificate is expired
-					const now = new Date();
-					const validFrom = new Date(certificate.valid_from);
-					const validTo = new Date(certificate.valid_to);
-
-					if (now > validTo) {
-						return reject(new Error(`The certificate for ${hostname} is expired.`));
-					}
-
-					// Prepare the certificate object for comparison
-					const formattedCertificate = {
+					resolve({
 						commonName: certificate.subject.CN,
 						issuer: Object.entries(certificate.issuer)
 							.map(([key, value]) => `${key}: '${value}'`)
 							.join(', '),
-						validFrom,
-						validTo,
+						validFrom: new Date(certificate.valid_from),
+						validTo: new Date(certificate.valid_to),
 						fingerprint: certificate.fingerprint || 'No Fingerprint Available'
-					};
-
-					// Resolve the formatted certificate object
-					resolve(formattedCertificate);
+					});
 				} else {
-					// Reject if the certificate is missing or invalid
-					reject(new Error(`Could not retrieve a valid SSL certificate for ${hostname}.`));
+					reject(new Error(`No valid certificate found for ${hostname}`));
 				}
 			});
 
-			// Handle request errors (network issues, DNS resolution failures, etc.)
 			req.on('error', err => {
-				clearTimeout(timeout); // Clear the timeout on error
-				reject(new Error(`Request error for ${hostname}: ${err.message}`));
+				clearTimeout(timeout);
+				reject(new Error(`Request error: ${err.message}`));
 			});
 
-			// Handle the abort event
 			controller.signal.addEventListener('abort', () => {
-				req.destroy(); // Destroy the request in case of abort
-				reject(new Error(`Request timed out while retrieving SSL certificate for ${hostname}.`));
+				req.destroy();
+				reject(new Error(`Request timed out for ${hostname}`));
 			});
 
 			req.end();
 		} catch (error) {
-			// Handle invalid domain URLs or other unexpected issues
-			const invalidDomainMessage = `Invalid domain or URL format: ${domain}`;
-			console.error(invalidDomainMessage, error.message);
-			reject(new Error(invalidDomainMessage));
+			reject(new Error(`Invalid domain format: ${domain}`));
 		}
 	});
 }
@@ -83,47 +83,27 @@ async function fetchSSLCertificate(domain) {
 // store certificate and link it to a monitored site
 async function storeCertificateForSite(siteId, certificateData) {
 	try {
-		// Log certificate data for debugging
-		console.log(`Certificate data for site ID ${siteId}:`, certificateData);
+		console.log(`Storing certificate for site ID ${siteId}:`, certificateData);
 
-		// Ensure critical fields are present
-		if (!certificateData || !certificateData.subject || !certificateData.subject.CN) {
+		// Validate certificate data before proceeding
+		if (!certificateData || !certificateData.commonName || !certificateData.validFrom || !certificateData.validTo) {
 			throw new Error('Incomplete or missing certificate data.');
 		}
 
-		// Convert the issuer object to a string format, with a fallback for empty or invalid data
-		const formattedIssuer = certificateData.issuer
-			? Object.entries(certificateData.issuer)
-					.map(([key, value]) => `${key}: '${value}'`)
-					.join(', ')
-			: 'Unknown Issuer';
-
-		// Handle missing fields gracefully
-		const commonName = certificateData.subject.CN || 'Unknown Common Name';
-		const validFrom = certificateData.valid_from ? new Date(certificateData.valid_from) : null;
-		const validTo = certificateData.valid_to ? new Date(certificateData.valid_to) : null;
-		const fingerprint = certificateData.fingerprint || 'No Fingerprint Available';
-
-		// If critical data is missing, log a warning
-		if (!validFrom || !validTo) {
-			console.warn(`Certificate for site ID ${siteId} has missing date information.`);
-		}
-
-		// Store the certificate in the database
 		const certificate = new Certificate({
-			commonName,
-			issuer: formattedIssuer,
-			validFrom,
-			validTo,
-			fingerprint
+			commonName: certificateData.commonName,
+			issuer: certificateData.issuer || 'Unknown Issuer',
+			validFrom: certificateData.validFrom,
+			validTo: certificateData.validTo,
+			fingerprint: certificateData.fingerprint || 'No Fingerprint Available'
 		});
 		await certificate.save();
 
-		// Link the certificate to the monitored site
 		const monitoredSite = await MonitoredSite.findById(siteId);
 		if (!monitoredSite) {
 			throw new Error(`Monitored site with ID ${siteId} not found.`);
 		}
+
 		monitoredSite.certificate = certificate._id;
 		await monitoredSite.save();
 
@@ -133,6 +113,7 @@ async function storeCertificateForSite(siteId, certificateData) {
 		throw err;
 	}
 }
+
 //
 async function compareCertificates(monitoredSiteCertificate, newCertificate) {
 	// Compare fingerprints (this is a common way to compare certificates)

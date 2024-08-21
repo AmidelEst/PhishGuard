@@ -5,7 +5,7 @@ import { navigateToPage } from '../domHandlers/navigation.js';
 import { handleLogout } from '../helperFunctions/eventListeners.js';
 import { populateAdminDropdown, populateWhitelistsDropdown, populateWhitelistUrls } from '../domHandlers/dropdown.js';
 
-// Standard function to handle API requests
+//~  Standard function to handle API requests
 const sendMessageToBackground = message => {
 	return new Promise((resolve, reject) => {
 		chrome.runtime.sendMessage(message, response => {
@@ -19,39 +19,8 @@ const sendMessageToBackground = message => {
 		});
 	});
 };
-//---------------public----------------
-// Register user
-export const registerUser = (payload, callback) => {
-	sendMessageToBackground({ message: 'register', payload })
-		.then(response => {
-			callback(response);
-		})
-		.catch(error => {
-			console.log('Registration failed:' + error);
-			callback({ success: false, message: error });
-		});
-};
-// Fetch and populate admins dropdown
-export const fetchAndPopulateAdmins = () => {
-	chrome.runtime.sendMessage({ message: 'fetchAdmins' }, response => {
-		if (response.success) {
-			populateAdminDropdown(response.admins);
-		} else {
-			showNotification('Failed to load admin list. Please try again later.', false);
-		}
-	});
-};
-// Fetch and populate admin's whitelists dropdown
-export const fetchAndPopulateAdminsWhitelists = adminName => {
-	chrome.runtime.sendMessage({ message: 'fetchAdminsWhitelists', adminName }, response => {
-		if (response.success) {
-			populateWhitelistsDropdown(response.whitelists);
-		} else {
-			showNotification('Failed to load whitelists. Please try again later.', false);
-		}
-	});
-};
-// Login user
+// ?---------Token Assigning Process--------------//
+//? 1) Login user
 export const loginUser = (email, password, callback) => {
 	const payload = { email, password };
 	sendMessageToBackground({ message: 'login', payload })
@@ -63,8 +32,49 @@ export const loginUser = (email, password, callback) => {
 			callback({ success: false, message: error });
 		});
 };
-//^----------WITH TOKEN ACTIONS - PRIVATE--------------------
-// Retrieves subscribedWhitelistId from chrome storage
+//? 2) Logout user
+export const logoutUser = callback => {
+	sendMessageToBackground({ message: 'logout' })
+		.then(response => {
+			callback(response);
+		})
+		.catch(error => {
+			console.log('Logout failed:' + error);
+			callback({ success: false, message: error });
+		});
+};
+//!----------ALGORITHMS - PRIVATE---------//
+//! stage 2: check CV
+export const checkCertificate = async (canonicalUrl, formattedSubmittedURL) => {
+	try {
+		// Send message to the background to fetch the URLs
+		const response = await sendMessageToBackground({
+			message: 'checkCertificate',
+			payload: { whitelistUrl: canonicalUrl, submittedUrl: formattedSubmittedURL }
+		});
+		showNotification(response.message, response.success);
+	} catch (error) {
+		console.log('Failed to checkCertificate:', error);
+		showNotification('Failed to checkCertificate.', false);
+		return [];
+	}
+};
+//!	stage 3: checkMinHash
+export const checkMinMash = async formattedSubmittedURL => {
+	try {
+		//& Send message to the background to fetch the URLs
+		const response = await sendMessageToBackground({
+			message: 'checkMinMash',
+			payload: { url: formattedSubmittedURL }
+		});
+		showNotification(response.message, response.success);
+	} catch (error) {
+		console.log('Failed to checkMinMash:', error);
+		showNotification('Failed to checkMinMash.', false);
+	}
+};
+//^----------WITH TOKEN ACTIONS - PRIVATE---------//
+//^ Get user's subscribed Whitelist ID from local storage
 export const fetchSubscribedWhitelistId = callback => {
 	chrome.storage.local.get('subscribedWhitelistId', result => {
 		if (result.subscribedWhitelistId) {
@@ -75,7 +85,7 @@ export const fetchSubscribedWhitelistId = callback => {
 		}
 	});
 };
-// Get user's subscribed whitelist from local storage
+//^ Get user's subscribed whitelist from local storage
 export const getUserSubscribedWhitelist = () => {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.get('subscribedWhitelist', result => {
@@ -89,7 +99,7 @@ export const getUserSubscribedWhitelist = () => {
 		});
 	});
 };
-// Fetch the subscribed whitelist URLs and populate them into the UI
+//^ Fetch the subscribed whitelist URLs and populate them into the UI
 export const fetchAndPopulateWhitelistUrls = async subscribedWhitelistId => {
 	try {
 		// Send message to the background to fetch the URLs
@@ -120,32 +130,35 @@ export const fetchAndPopulateWhitelistUrls = async subscribedWhitelistId => {
 		return [];
 	}
 };
-
-export const checkCertificate = async (canonicalUrl, formattedSubmittedURL) => {
-	try {
-		// Send message to the background to fetch the URLs
-		const response = await sendMessageToBackground({
-			message: 'checkCertificate',
-			payload: { whitelistUrl: canonicalUrl, submittedUrl: formattedSubmittedURL }
+//*----------RegisterPage - PUBLIC ---------------//
+//* 0) Register user
+export const registerUser = (payload, callback) => {
+	sendMessageToBackground({ message: 'register', payload })
+		.then(response => {
+			callback(response);
+		})
+		.catch(error => {
+			console.log('Registration failed:' + error);
+			callback({ success: false, message: error });
 		});
-		showNotification(response.message, response.success);
-	} catch (error) {
-		console.log('Failed to checkCertificate:', error);
-		showNotification('Failed to checkCertificate.', false);
-		return [];
-	}
 };
-
-export const checkUrl = async formattedSubmittedURL => {
-	try {
-		// Send message to the background to fetch the URLs
-		const response = await sendMessageToBackground({
-			message: 'checkUrl',
-			payload: { url: formattedSubmittedURL }
-		});
-		showNotification(response.message, response.success);
-	} catch (error) {
-		console.log('Failed to checkUrl:', error);
-		showNotification('Failed to checkUrl.', false);
-	}
+//* admins dropdown
+export const fetchAndPopulateAdmins = () => {
+	chrome.runtime.sendMessage({ message: 'fetchAdmins' }, response => {
+		if (response.success) {
+			populateAdminDropdown(response.admins);
+		} else {
+			showNotification('Failed to load admin list. Please try again later.', false);
+		}
+	});
+};
+//* admin's whitelists
+export const fetchAndPopulateAdminsWhitelists = adminName => {
+	chrome.runtime.sendMessage({ message: 'fetchAdminsWhitelists', adminName }, response => {
+		if (response.success) {
+			populateWhitelistsDropdown(response.whitelists);
+		} else {
+			showNotification('Failed to load whitelists. Please try again later.', false);
+		}
+	});
 };

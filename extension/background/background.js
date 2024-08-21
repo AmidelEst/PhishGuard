@@ -1,17 +1,15 @@
-//------------------------------------------------------//
-// background.js
-
+//------------------------------------------------//
+// extension/background/background.js
 let apiUrl = 'http://localhost:3001';
-
-// &---------Listen to Messages-----------
+// ~------------Listen to Messages----------------//
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log(request.message);
 	switch (request.message) {
-		// --onStart--
+		// --onStart-- //? checkAuthToken
 		case 'onStart':
 			checkAuthToken(sendResponse);
 			return true;
-		// 0) register
+		//* 0) register
 		case 'register':
 			handleRegistration(request.payload)
 				.then(sendResponse)
@@ -19,7 +17,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					sendResponse({ success: false, message: 'Registration failed' });
 				});
 			return true;
-		// 1) login
+		//? 1) login
 		case 'login':
 			handleLogin(request.payload)
 				.then(sendResponse)
@@ -27,7 +25,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					sendResponse({ success: false, message: 'Login failed' });
 				});
 			return true;
-		// 2) logout
+		//? 2) logout
 		case 'logout':
 			handleLogout(sendResponse);
 			return true;
@@ -35,19 +33,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		case 'fetchSubscribedWhitelist':
 			fetchSubscribedWhitelist(request.subscribedWhitelistId, sendResponse);
 			return true;
-		//^ token needed
-		case 'checkUrl':
-			handleCheckUrl(request.payload, sendResponse);
-			return true;
-		//^ regular token needed
+		//! stage 2: check CV
 		case 'checkCertificate':
 			handleCheckCertificate(request.payload, sendResponse);
 			return true;
-		// No tokens needed
+		//!	stage 3: checkMinHash
+		case 'checkMinMash':
+			handlerCheckMinMash(request.payload, sendResponse);
+			return true;
+		//* PUBLIC
 		case 'fetchAdmins':
 			fetchAdmins(sendResponse);
 			return true;
-		// No tokens needed
+		//* PUBLIC
 		case 'fetchAdminsWhitelists':
 			fetchAdminsWhitelists(request.adminName, sendResponse);
 			return true;
@@ -58,10 +56,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 	return true; // Keep message channel open for asynchronous response
 });
-
-// !---------Handler functions------------
-
-// ?---------Token Assigning Process--------------
+//& ---------Handler functions--------------------//
+//? ---------Token Assigning Process--------------//
 //?
 function checkAuthToken(sendResponse) {
 	chrome.storage.local.get(['authToken', 'userStatus'], function (result) {
@@ -77,21 +73,6 @@ function checkAuthToken(sendResponse) {
 		} else {
 			sendResponse({ success: false, message: 'No token found' });
 		}
-	});
-}
-//? Helper function to retrieve auth and refresh tokens from chrome storage
-function getTokens() {
-	return new Promise((resolve, reject) => {
-		chrome.storage.local.get(['authToken', 'refreshToken'], result => {
-			if (!result.authToken) {
-				reject('No auth token available');
-			} else {
-				resolve({
-					authToken: result.authToken,
-					refreshToken: result.refreshToken
-				});
-			}
-		});
 	});
 }
 //?
@@ -119,12 +100,27 @@ function refreshAccessToken() {
 		});
 	});
 }
+//? Helper function to retrieve auth and refresh tokens from chrome storage
+function getTokens() {
+	return new Promise((resolve, reject) => {
+		chrome.storage.local.get(['authToken', 'refreshToken'], result => {
+			if (!result.authToken) {
+				reject('No auth token available');
+			} else {
+				resolve({
+					authToken: result.authToken,
+					refreshToken: result.refreshToken
+				});
+			}
+		});
+	});
+}
 //?
 function isTokenExpired(token) {
 	const decodedToken = JSON.parse(atob(token.split('.')[1]));
 	return decodedToken.exp * 1000 < Date.now();
 }
-//? 1) handle Login
+//? Login handler
 function handleLogin(userCredentials) {
 	return fetch(`${apiUrl}/user/login`, {
 		method: 'POST',
@@ -157,109 +153,7 @@ function handleLogin(userCredentials) {
 			});
 		});
 }
-//^----------WITH TOKEN ACTIONS - PRIVATE--------------------
-
-//^  after loginPage or at popup press
-function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
-	if (!subscribedWhitelistId) {
-		sendResponse({ success: false, message: 'No whitelist ID provided.' });
-		return;
-	}
-
-	chrome.storage.local.get('authToken', result => {
-		if (!result.authToken) {
-			sendResponse({ success: false, message: 'No token available' });
-			return;
-		}
-
-		const token = result.authToken;
-
-		fetch(`${apiUrl}/user/whitelist/${subscribedWhitelistId}/monitored-sites`, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${token}` // Fix: added space between Bearer and token
-			}
-		})
-			.then(res => res.json())
-			.then(whitelistData => {
-				if (whitelistData.success) {
-					const monitoredSites = whitelistData.monitoredSites || []; // Extract URLs properly
-
-					chrome.storage.local.set({ subscribedWhitelist: monitoredSites }, () => {
-						if (chrome.runtime.lastError) {
-							sendResponse({
-								success: false,
-								message: chrome.runtime.lastError
-							});
-						} else {
-							sendResponse({ success: true, monitoredSites: monitoredSites });
-						}
-					});
-				} else {
-					sendResponse({
-						success: false,
-						message: whitelistData.message || 'Failed to fetch monitored sites.'
-					});
-				}
-			})
-			.catch(error => {
-				sendResponse({ success: false, message: 'Error fetching monitored sites.' });
-			});
-	});
-}
-//^  CheckCertificate
-function handleCheckCertificate(submittedURL, sendResponse) {
-	chrome.storage.local.get('authToken', result => {
-		if (result.authToken) {
-			fetch(`${apiUrl}/sites/check_cv`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${result.authToken}`
-				},
-				body: JSON.stringify(submittedURL)
-			})
-				.then(res => res.json())
-				.then(data => {
-					console.log(data);
-					sendResponse({ success: data.success, message: data.message });
-				})
-				.catch(error => {
-					sendResponse({ success: false, message: error.message });
-				});
-		} else {
-			sendResponse({ success: false, message: 'Not authenticated' });
-		}
-	});
-}
-//^  checkUrl
-function handleCheckUrl(submittedURL, sendResponse) {
-	chrome.storage.local.get('authToken', result => {
-		if (result.authToken) {
-			fetch(`${apiUrl}/sites/check_url`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${result.authToken}`
-				},
-				body: JSON.stringify(submittedURL)
-			})
-				.then(res => res.json())
-				.then(data => {
-					sendResponse({ success: data.success, message: data.message });
-				})
-				.catch(error => {
-					sendResponse({ success: false, message: error.message });
-				});
-		} else {
-			sendResponse({ success: false, message: 'Not authenticated' });
-		}
-	});
-
-	return true;
-}
-//^  handle LogOut
+//? LogOut handler
 function handleLogout(sendResponse) {
 	chrome.storage.local.get(['authToken', 'refreshToken'], result => {
 		const authToken = result.authToken;
@@ -308,8 +202,122 @@ function handleLogout(sendResponse) {
 	// Ensure async sendResponse is handled properly
 	return true; // Keep the message channel open for async sendResponse
 }
+//^----------WITH TOKEN ACTIONS - PRIVATE---------//
+//^ after loginPage or at popup press
+function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
+	if (!subscribedWhitelistId) {
+		sendResponse({ success: false, message: 'No whitelist ID provided.' });
+		return;
+	}
 
-//*----------RegisterPage - PUBLIC ----------------------
+	chrome.storage.local.get('authToken', result => {
+		if (!result.authToken) {
+			sendResponse({ success: false, message: 'No token available' });
+			return;
+		}
+
+		const token = result.authToken;
+
+		fetch(`${apiUrl}/user/whitelist/${subscribedWhitelistId}/monitored-sites`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			}
+		})
+			.then(res => res.json())
+			.then(whitelistData => {
+				if (whitelistData.success) {
+					const monitoredSites = whitelistData.monitoredSites || []; // Extract URLs properly
+
+					chrome.storage.local.set({ subscribedWhitelist: monitoredSites }, () => {
+						if (chrome.runtime.lastError) {
+							sendResponse({
+								success: false,
+								message: chrome.runtime.lastError
+							});
+						} else {
+							sendResponse({ success: true, monitoredSites: monitoredSites });
+						}
+					});
+				} else {
+					sendResponse({
+						success: false,
+						message: whitelistData.message || 'Failed to fetch monitored sites.'
+					});
+				}
+			})
+			.catch(error => {
+				sendResponse({ success: false, message: error.message });
+			});
+	});
+}
+//!----------ALGORITHMS ----------PRIVATE---------//
+//! stage 2: check CV handler
+function handleCheckCertificate(submittedURL, sendResponse) {
+	chrome.storage.local.get('authToken', result => {
+		if (result.authToken) {
+			fetch(`${apiUrl}/sites/check_cv`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${result.authToken}`
+				},
+				body: JSON.stringify(submittedURL)
+			})
+				.then(res => res.json())
+				.then(data => {
+					console.log(data);
+					sendResponse({ success: data.success, message: data.message });
+				})
+				.catch(error => {
+					sendResponse({ success: false, message: error.message });
+				});
+		} else {
+			sendResponse({ success: false, message: 'Not authenticated' });
+		}
+	});
+}
+//! stage 3: checkMinHash handler
+function handlerCheckMinMash(submittedURL, sendResponse) {
+	chrome.storage.local.get('authToken', result => {
+		if (result.authToken) {
+			fetch(`${apiUrl}/sites/check_url`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${result.authToken}`
+				},
+				body: JSON.stringify(submittedURL)
+			})
+				.then(res => res.json())
+				.then(data => {
+					sendResponse({ success: data.success, message: data.message });
+				})
+				.catch(error => {
+					sendResponse({ success: false, message: error.message });
+				});
+		} else {
+			sendResponse({ success: false, message: 'Not authenticated' });
+		}
+	});
+
+	return true;
+}
+
+//*----------RegisterPage -------- PUBLIC ---------------//
+//* 0) register handler
+function handleRegistration(user_info) {
+	return fetch(`${apiUrl}/user/register`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(user_info)
+	})
+		.then(res => res.json())
+		.then(data => {
+			return { success: data.success, message: data.message };
+		});
+}
 //* GET admins
 function fetchAdmins(sendResponse) {
 	fetch(`${apiUrl}/user/admin-list`, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
@@ -339,17 +347,5 @@ function fetchAdminsWhitelists(adminName, sendResponse) {
 		})
 		.catch(error => {
 			sendResponse({ success: false, message: error.message });
-		});
-}
-//* 0) handle register
-function handleRegistration(user_info) {
-	return fetch(`${apiUrl}/user/register`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(user_info)
-	})
-		.then(res => res.json())
-		.then(data => {
-			return { success: data.success, message: data.message };
 		});
 }
