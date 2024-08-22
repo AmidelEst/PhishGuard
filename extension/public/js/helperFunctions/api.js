@@ -45,14 +45,15 @@ export const logoutUser = callback => {
 };
 //!----------ALGORITHMS - PRIVATE---------//
 //! stage 2: check CV
-export const checkCertificate = async (canonicalUrl, formattedSubmittedURL) => {
+export const checkCertificate = async (canonicalUrl, submittedURL) => {
 	try {
 		// Send message to the background to fetch the URLs
 		const response = await sendMessageToBackground({
 			message: 'checkCertificate',
-			payload: { whitelistUrl: canonicalUrl, submittedUrl: formattedSubmittedURL }
+			payload: { whitelistUrl: canonicalUrl, submittedUrl: submittedURL }
 		});
-		showNotification(response.message, response.success);
+
+		return { success: response.success, message: response.message };
 	} catch (error) {
 		console.log('Failed to checkCertificate:', error);
 		showNotification('Failed to checkCertificate.', false);
@@ -71,6 +72,32 @@ export const checkMinMash = async formattedSubmittedURL => {
 	} catch (error) {
 		console.log('Failed to checkMinMash:', error);
 		showNotification('Failed to checkMinMash.', false);
+	}
+};
+//&	stage 4: createNewQuery
+export const createNewQuery = async (canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore) => {
+	try {
+		//& Send message to the background
+		const response = await sendMessageToBackground({
+			message: 'createNewQuery',
+			payload: { canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore }
+		});
+		return console.log(response.message, response.success);
+	} catch (error) {
+		return console.log('Failed to create a new query:', error);
+	}
+};
+export const newQuery = async (submittedURLCopy, isInSubscribedWhitelist, cvScore, minHashScore, overAllScore) => {
+	try {
+		//& Send message to the background
+		const response = await sendMessageToBackground({
+			message: 'newQuery',
+			payload: { submittedURLCopy, isInSubscribedWhitelist, cvScore, minHashScore, overAllScore }
+		});
+		console.log(response.message, response.success);
+	} catch (error) {
+		console.log('Failed to create a new query:', error);
+		showNotification('Failed to create a new query.', false);
 	}
 };
 //^----------WITH TOKEN ACTIONS - PRIVATE---------//

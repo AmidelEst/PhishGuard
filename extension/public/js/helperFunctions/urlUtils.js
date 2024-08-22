@@ -12,35 +12,49 @@ export const extractBaseUrl = url => {
 	}
 };
 
-// Utility function to normalize a URL
-export function normalizeUrl(url) {
+// // Utility function to normalize a URL
+// export function normalizeUrl(url) {
+// 	try {
+// 		const lowerUrl = url.toLowerCase();
+// 		console.log(lowerUrl);
+// 		const parsedUrl = new URL(lowerUrl);
+// 		return parsedUrl.origin;
+// 	} catch (error) {
+// 		console.log('Invalid URL:', error.message);
+// 		return null;
+// 	}
+// }
+// // Format submitted URL with the correct prefix if missing
+// export const formatSubmittedUrl = url => {
+// 	if (!/^https?:\/\//i.test(url)) {
+// 		url = /^www\./i.test(url) ? `https://${url}` : `https://www.${url}`;
+// 	}
+// 	return url;
+// };
+
+export function formatAndNormalizeUrl(url) {
 	try {
+		// Format the URL to ensure it has the correct prefix
+		if (!/^https?:\/\//i.test(url)) {
+			url = /^www\./i.test(url) ? `https://${url}` : `https://www.${url}`;
+		}
+
+		// Convert URL to lowercase and normalize it
 		const lowerUrl = url.toLowerCase();
-		console.log(lowerUrl);
 		const parsedUrl = new URL(lowerUrl);
+
+		// Return the origin of the parsed URL (protocol + hostname + port if any)
 		return parsedUrl.origin;
 	} catch (error) {
 		console.log('Invalid URL:', error.message);
 		return null;
 	}
 }
-// Format submitted URL with the correct prefix if missing
-export const formatSubmittedUrl = url => {
-	if (!/^https?:\/\//i.test(url)) {
-		url = /^www\./i.test(url) ? `https://${url}` : `https://www.${url}`;
-	}
-	return url;
-};
+
 
 // Adjust isUrlInWhitelist to handle an array of strings (URLs)
 export function isUrlInWhitelist(submittedUrl, whitelist) {
-	// if (!Array.isArray(whitelist)) {
-	// 	// Check that the whitelist is an array of strings
-	// 	console.error('Invalid whitelist structure:', whitelist);
-	// 	return { success: false, message: 'Invalid whitelist structure' };
-	// }
 	console.log('SubmittedUrl:' + submittedUrl);
-
 	if (!submittedUrl) {
 		return { success: false, message: 'Invalid URL submitted' };
 	}

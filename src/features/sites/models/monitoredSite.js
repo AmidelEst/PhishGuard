@@ -9,7 +9,7 @@ const monitoredSiteSchema = new Schema(
 		whitelistId: { type: Schema.Types.ObjectId, ref: 'whitelists', required: true },
 		// Canonical URL for the monitored site
 		siteName: { type: String, required: true },
-		canonicalUrl: { type: String, required: true }, // Updated field
+		canonicalUrl: { type: String, required: true },
 		// Pattern to match variations of the site URL
 		urlPattern: { type: String, required: true },
 		DOM: { type: String },

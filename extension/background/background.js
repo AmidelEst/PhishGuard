@@ -41,6 +41,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		case 'checkMinMash':
 			handlerCheckMinMash(request.payload, sendResponse);
 			return true;
+		case 'createNewQuery':
+			handlerCreateNewQuery(request.payload, sendResponse);
+			return true;
 		//* PUBLIC
 		case 'fetchAdmins':
 			fetchAdmins(sendResponse);
@@ -60,14 +63,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 //? ---------Token Assigning Process--------------//
 //?
 function checkAuthToken(sendResponse) {
-	chrome.storage.local.get(['authToken', 'userStatus'], function (result) {
-		if (typeof result.userStatus === 'undefined') {
-			// If userStatus is undefined, remove it from storage
-			chrome.storage.local.remove('userStatus', () => {
-				if (chrome.runtime.lastError) {
-				}
-			});
-		}
+	chrome.storage.local.get(['authToken'], function (result) {
 		if (result.authToken) {
 			sendResponse({ success: true, message: 'Token found' });
 		} else {
@@ -267,14 +263,13 @@ function handleCheckCertificate(submittedURL, sendResponse) {
 			})
 				.then(res => res.json())
 				.then(data => {
-					console.log(data);
-					sendResponse({ success: data.success, message: data.message });
+					return sendResponse({ success: data.success, message: data.message });
 				})
 				.catch(error => {
-					sendResponse({ success: false, message: error.message });
+					return sendResponse({ success: data.success, message: error });
 				});
 		} else {
-			sendResponse({ success: false, message: 'Not authenticated' });
+			return sendResponse({ success: false, message: 'Not authenticated' });
 		}
 	});
 }
@@ -302,6 +297,45 @@ function handlerCheckMinMash(submittedURL, sendResponse) {
 		}
 	});
 
+	return true;
+}
+
+//! stage 4: handlerCreateNewQuery
+function handlerCreateNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore, sendResponse) {
+	console.log(
+		'🚀 ~ handlerCreateNewQuery ~ canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore:',
+		canonicalUrl,
+		submittedURLCopy,
+		isInSubscribedWhitelist,
+		cvScore
+	);
+
+	chrome.storage.local.get('authToken', result => {
+		if (result.authToken) {
+			fetch(`${apiUrl}/sites/new_query`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${result.authToken}`
+				},
+				body: JSON.stringify({ canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore })
+			})
+				.then(res => res.json())
+				.then(data => {
+					// Ensure the sendResponse is correctly invoked
+					sendResponse({ success: data.success, message: data.message });
+				})
+				.catch(error => {
+					// Handle errors properly
+					sendResponse({ success: false, message: error.message || 'Request failed' });
+				});
+		} else {
+			// Handle case when no authToken is found
+			sendResponse({ success: false, message: 'Not authenticated' });
+		}
+	});
+
+	// Returning true to indicate asynchronous response will be sent later
 	return true;
 }
 

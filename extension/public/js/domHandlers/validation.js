@@ -2,7 +2,7 @@
 // extension/public/js/domHandlers/validation.js
 import { getElement } from './getElement.js';
 
-// Helper function to hide all password feedback messages
+//todo -  Helper function - hide all password feedback messages
 const hideAllPasswordFeedback = () => {
 	const feedbackIds = [
 		'passwordLengthFeedback',
@@ -14,9 +14,43 @@ const hideAllPasswordFeedback = () => {
 		getElement(id).style.display = 'none';
 	});
 };
+//*----------RegisterPage - PUBLIC -------//
+//* Login & Register email validation
+export const validateEmailField = formKind => {
+	const emailField = getElement(formKind);
+	const emailValue = emailField.value.trim().toLowerCase();
 
-// Password validation function
-export const validatePassword = () => {
+	//* email pattern validation
+	const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+	const isValid = emailPattern.test(emailValue);
+
+	if (!isValid) {
+		emailField.classList.add('is-invalid');
+	} else {
+		emailField.classList.remove('is-invalid');
+		emailField.classList.add('is-valid');
+	}
+	return isValid;
+};
+
+//* Login Password validation function
+export const validateLoginPassword = () => {
+	const password = getElement('loginPassword').value.trim();
+	hideAllPasswordFeedback();
+
+	let isValid = true;
+
+	// Validate password length (8-20 characters)
+	if (password.length < 8 || password.length > 20) {
+		getElement('passwordLengthFeedback').style.display = 'block';
+		isValid = false;
+	}
+
+	return isValid;
+};
+//* Password validation function
+export const validateRegisterPassword = () => {
 	const password = getElement('registerPassword').value.trim();
 	hideAllPasswordFeedback();
 
@@ -48,10 +82,12 @@ export const validatePassword = () => {
 
 	return isValid;
 };
-
+//!----------ALGORITHMS - PRIVATE---------//
+//! Handles URL form submission and processing
 export const validateUrlField = () => {
 	const urlField = getElement('urlField');
-	const urlValue = urlField.value.trim();
+	const urlValue = urlField.value.trim().toLowerCase();
+	console.log(urlValue);
 
 	// Check that the URL does not start with a dot
 	if (urlValue.startsWith('.')) {
@@ -69,41 +105,6 @@ export const validateUrlField = () => {
 	} else {
 		urlField.classList.remove('is-invalid'); // Remove invalid class if valid
 		urlField.classList.add('is-valid'); // Optionally, add valid class
-	}
-
-	return isValid;
-};
-
-// Generic form field validator that accepts rules
-export const validateField = (field, rules) => {
-	let isValid = true;
-	rules.forEach(rule => {
-		if (!rule.check(field.value)) {
-			field.classList.add('is-invalid');
-			isValid = false;
-		} else {
-			field.classList.remove('is-invalid');
-			field.classList.add('is-valid');
-		}
-	});
-	return isValid;
-};
-
-// Example usage for email validation
-export const validateEmailField = () => {
-	const emailField = getElement('registerEmail');
-	const emailValue = emailField.value.trim();
-
-	// Basic email pattern validation
-	const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-	const isValid = emailPattern.test(emailValue);
-
-	if (!isValid) {
-		emailField.classList.add('is-invalid');
-	} else {
-		emailField.classList.remove('is-invalid');
-		emailField.classList.add('is-valid');
 	}
 
 	return isValid;

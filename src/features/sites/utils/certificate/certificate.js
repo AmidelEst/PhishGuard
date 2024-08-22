@@ -3,7 +3,7 @@ const Certificate = require('../../models/certificate');
 const MonitoredSite = require('../../models/monitoredSite');
 const https = require('https');
 const { AbortController } = require('abort-controller');
-//
+
 async function fetchSSLCertificate(domain) {
 	const maxRetries = 3;
 	let attempts = 0;
@@ -15,15 +15,18 @@ async function fetchSSLCertificate(domain) {
 			const certificate = await attemptFetchSSLCertificate(domain);
 
 			if (certificate) {
+				// If a valid certificate is found, return it immediately.
 				return certificate;
-			} else {
-				console.warn(`Attempt ${attempts} failed: No certificate found for ${domain}.`);
 			}
 		} catch (error) {
 			console.error(`Attempt ${attempts} failed for ${domain}: ${error.message}`);
 		}
+
+		// Log the warning for debugging purposes.
+		console.warn(`Attempt ${attempts} failed: Retrying SSL certificate fetch for ${domain}.`);
 	}
 
+	// If all attempts fail, throw an error after the loop.
 	throw new Error(`Failed to fetch SSL certificate for ${domain} after ${maxRetries} attempts.`);
 }
 
@@ -33,7 +36,7 @@ async function attemptFetchSSLCertificate(domain) {
 			const { hostname } = new URL(domain);
 
 			const controller = new AbortController();
-			const timeout = setTimeout(() => controller.abort(), 5000);
+			const timeout = setTimeout(() => controller.abort(), 10000); // Set timeout to 10 seconds
 
 			const options = {
 				host: hostname,
@@ -44,7 +47,7 @@ async function attemptFetchSSLCertificate(domain) {
 			};
 
 			const req = https.request(options, res => {
-				clearTimeout(timeout);
+				clearTimeout(timeout); // Clear the timeout if the request completes
 
 				const certificate = res.socket.getPeerCertificate();
 
@@ -58,8 +61,6 @@ async function attemptFetchSSLCertificate(domain) {
 						validTo: new Date(certificate.valid_to),
 						fingerprint: certificate.fingerprint || 'No Fingerprint Available'
 					});
-				} else {
-					reject(new Error(`No valid certificate found for ${hostname}`));
 				}
 			});
 

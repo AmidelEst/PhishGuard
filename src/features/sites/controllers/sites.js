@@ -3,6 +3,8 @@
 const express = require('express');
 const router = express.Router();
 const MonitoredSite = require('../models/monitoredSite');
+const { storeNewQuery } = require('../utils/queries/queries');
+
 const {
 	fetchAndHashSubmittedURL,
 	fetchWhitelistedSites,
@@ -94,6 +96,33 @@ router.post('/check_url', async (req, res) => {
 			similarity
 		});
 	}
+});
+
+router.post('/new_query', async (req, res) => {
+	const { canonicalUrl } = req.body;
+	console.log('Canonical URL being queried:', canonicalUrl.canonicalUrl);
+	try {
+		// Find the monitored site by its canonical URL (whitelist URL)
+		const monitoredSite = await MonitoredSite.findOne({
+			canonicalUrl: canonicalUrl.canonicalUrl
+		});
+		if (!monitoredSite) {
+			return res.status(404).json({
+				success: false,
+				message: 'monitored site Not found.'
+			});
+		}
+		await storeNewQuery(
+			monitoredSite,
+			canonicalUrl.submittedURLCopy,
+			canonicalUrl.isInSubscribedWhitelist,
+			canonicalUrl.cvScore
+		);
+	} catch (err) {}
+	return res.status(200).json({
+		success: false,
+		message: 'Low similarity score.'
+	});
 });
 
 module.exports = router;

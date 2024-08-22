@@ -2,7 +2,11 @@
 // src/features/users/controllers/users/regularUser.js
 const express = require('express');
 const regularUserRouter = express.Router();
+//input handling
+const sanitize = require('mongo-sanitize');
 const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
+dotenv.config();
 // Models
 const RegularUser = require('../models/regularUser');
 const AdminUser = require('../models/adminUser');
@@ -49,20 +53,27 @@ regularUserRouter.get('/refresh-token', roleMiddleware(['user']), async (req, re
 //? 1) login - PUBLIC
 regularUserRouter.post('/login', async (req, res) => {
 	try {
-		const { email, password } = req.body;
-		// Find the user
-		const user = await RegularUser.findOne({ email: email.trim().toLowerCase() });
+		// Sanitize and validate inputs
+		const email = sanitize(req.body.email).trim().toLowerCase();
+		const password = sanitize(req.body.password);
+
+		if (!email || !password) {
+			return res.status(400).send({ success: false, message: 'Email and password are required.' });
+		}
+
+		// Find the user by sanitized email
+		const user = await RegularUser.findOne({ email });
 		if (!user) {
-			return res.status(401).send({ success: false, message: 'User not found.' });
+			return res.status(401).send({ success: false, message: 'Invalid credentials.' });
 		}
 		// Check if the user has a subscribed whitelist
 		if (!user.subscribedWhitelist) {
-			return res.status(500).send({ success: false, message: 'User has no subscribed whitelist.' });
+			return res.status(401).send({ success: false, message: 'User has no subscribed whitelist.' });
 		}
 		// Compare passwords
 		const isMatch = await bcrypt.compare(password, user.password);
 		if (!isMatch) {
-			return res.status(401).send({ success: false, message: 'Wrong password.' });
+			return res.status(401).send({ success: false, message: 'Invalid credentials.' });
 		}
 		// Generate Access and Refresh Tokens
 		const accessToken = generateAccessToken({ _id: user._id, role: 'user' });
@@ -112,6 +123,7 @@ regularUserRouter.get('/whitelist/:id/monitored-sites', roleMiddleware(['user'])
 });
 //^  details
 regularUserRouter.get('/details', roleMiddleware(['user']), async (req, res) => {
+	process.stdout.write(req.params + '\n');
 	const token = req.headers.authorization?.split(' ')[1];
 	if (!token) return res.sendStatus(401);
 	RegularUser.findById(res.user._id, (err, foundUser) => {
@@ -121,13 +133,8 @@ regularUserRouter.get('/details', roleMiddleware(['user']), async (req, res) => 
 });
 //^  Security Level
 regularUserRouter.get('/security-level', roleMiddleware(['user']), async (req, res) => {
-	console.log('Route hit'); // Simple console log to check if the route is being hit
-	process.stdout.write('Security level route reached\n');
-
 	try {
-		const userId = req.user._id;
-		console.log(userId); // Check if the user ID is correctly extracted
-
+		console.log(res.user._id); // Check if the user ID is correctly extracted
 		const user = await RegularUser.findById(userId).select('securityLevel');
 		if (!user) {
 			return res.status(404).json({ success: false, message: 'User not found.' });
@@ -167,6 +174,30 @@ regularUserRouter.post('/logout', async (req, res) => {
 });
 
 //*----------RegisterPage - PUBLIC ----------------------
+//* 0) handle register
+regularUserRouter.post('/register', async (req, res) => {
+	try {
+		const { email, password, securityLevel, subscribedWhitelist } = req.body;
+		const existingUser = await RegularUser.findOne({ email });
+
+		if (existingUser) {
+			return res.status(409).send({ success: false, message: 'User already exists' });
+		}
+		const saltRounds = parseInt(process.env.SALT_ROUNDS || 10);
+		const hashedPassword = await bcrypt.hash(password, saltRounds);
+		const newUser = new RegularUser({
+			email,
+			password: hashedPassword,
+			securityLevel,
+			subscribedWhitelist
+		});
+		await newUser.save();
+
+		res.status(201).send({ success: true, message: 'User registered successfully' });
+	} catch (error) {
+		res.status(500).send({ success: false, message: error.message });
+	}
+});
 //* GET admins
 regularUserRouter.get('/admin-list', async (req, res) => {
 	try {
@@ -197,30 +228,6 @@ regularUserRouter.get('/adminsWhitelists', async (req, res) => {
 	} catch (error) {
 		console.error('Error fetching whitelists:', error);
 		res.status(500).json({ success: false, message: 'Server error' });
-	}
-});
-//* 0) handle register
-regularUserRouter.post('/register', async (req, res) => {
-	try {
-		const { email, password, securityLevel, subscribedWhitelist } = req.body;
-		const existingUser = await RegularUser.findOne({ email });
-
-		if (existingUser) {
-			return res.status(409).send({ success: false, message: 'User already exists' });
-		}
-
-		const hashedPassword = await bcrypt.hash(password, 10);
-		const newUser = new RegularUser({
-			email,
-			password: hashedPassword,
-			securityLevel,
-			subscribedWhitelist
-		});
-		await newUser.save();
-
-		res.status(201).send({ success: true, message: 'User registered successfully' });
-	} catch (error) {
-		res.status(500).send({ success: false, message: error.message });
 	}
 });
 

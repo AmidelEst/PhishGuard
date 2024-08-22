@@ -2,7 +2,12 @@
 //  extension/public/js/helperFunctions/eventListeners.js
 import { getElement } from '../domHandlers/getElement.js';
 import { navigateToPage } from '../domHandlers/navigation.js';
-import { validatePassword, validateUrlField } from '../domHandlers/validation.js';
+import {
+	validateRegisterPassword,
+	validateEmailField,
+	validateUrlField,
+	validateLoginPassword
+} from '../domHandlers/validation.js';
 import {
 	loginUser,
 	logoutUser,
@@ -13,9 +18,12 @@ import {
 	fetchAndPopulateAdminsWhitelists,
 	getUserSubscribedWhitelist,
 	checkMinMash,
-	checkCertificate
+	checkCertificate,
+	createNewQuery,
+	newQuery
 } from './api.js';
-import { formatSubmittedUrl, isUrlInWhitelist, normalizeUrl } from './urlUtils.js';
+//formatSubmittedUrl , normalizeUrl
+import { formatAndNormalizeUrl, isUrlInWhitelist } from './urlUtils.js';
 import { showNotification, closeNotification } from '../domHandlers/notification.js';
 
 //* Setup navigation for page interactions //!fetch and populate
@@ -34,7 +42,84 @@ const setupButtonsListeners = () => {
 	getElement('goBackBtnFromRegister').addEventListener('click', () => navigateToPage('mainPage'));
 	getElement('goBackBtnFromLogin').addEventListener('click', () => navigateToPage('mainPage'));
 };
-// ?---------Token Assigning Process--------------//
+//!----------ALGORITHMS - PRIVATE---------//
+//! Handles URL form submission and processing
+const handleSendUrlFormSubmit = () => {
+	const sendUrlForm = getElement('sendUrlForm');
+	if (sendUrlForm) {
+		sendUrlForm.addEventListener('submit', async e => {
+			e.preventDefault();
+
+			let submittedURL = getElement('urlField').value.trim().toLowerCase();
+			const submittedURLCopy = submittedURL;
+			console.log('52= ' + submittedURL);
+
+			// Validate URL field
+			const isUrlValid = validateUrlField();
+			submittedURL = formatAndNormalizeUrl(submittedURL);
+			console.log('formatAndNormalizeUrl: ' + submittedURL);
+
+			// If URL is valid, proceed with form submission
+			if (isUrlValid) {
+				try {
+					const subscribedWhitelist = await getUserSubscribedWhitelist();
+
+					//^ Step 1: relevant to all levels : Check if URL is in the whitelist
+					const { success, canonicalUrl } = isUrlInWhitelist(submittedURL, subscribedWhitelist);
+					const isInSubscribedWhitelist = success;
+
+					if (isInSubscribedWhitelist) {
+						console.log(submittedURLCopy + ' Found in whitelist');
+						showNotification('URL is in subscribed whitelist.', isInSubscribedWhitelist);
+					} else {
+						showNotification('URL is in NOT whitelist.', false);
+						return;
+					}
+					//^ Step 2: relevant to all levels
+					const cvScore = await checkCertificate(canonicalUrl, submittedURL);
+					console.log('URL is CV Safe!', cvScore.message);
+					// showNotification(cvScore, cvMessage);
+					if (!cvScore.success) {
+						return;
+					}
+					//* createNewQuery
+					createNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore.success);
+					//! Step 3: only medium and high
+					// const checkMinHashResult = await checkMinMash(canonicalUrl);
+					//! accumulate results
+					// let minHashScore = checkMinHashResult.similarity;
+					// const minHashThreshold = 0.8;
+					// let overAllScore = cvScore === 'Yes' && minHashScore !== null && minHashScore >= minHashThreshold ? 1 : 0;
+					// newQuery(submittedURLCopy, isInSubscribedWhitelist, cvScore, minHashScore, overAllScore);
+					console.log(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore.success);
+				} catch (error) {
+					console.log('Error ' + error);
+					showNotification(error.message, false);
+				}
+			}
+		});
+	}
+};
+//todo - LoginDynamic validation
+const setupLoginDynamicValidation = () => {
+	const loginForm = getElement('loginForm');
+	if (!loginForm) return;
+	// Validate the email field in real-time
+	const emailField = getElement('loginEmail');
+	emailField.addEventListener('input', () => {
+		const isValid = validateEmailField('loginEmail');
+		emailField.classList.toggle('is-valid', isValid);
+		emailField.classList.toggle('is-invalid', !isValid);
+	});
+	// Validate the password field in real-time
+	const passwordField = getElement('loginPassword');
+	passwordField.addEventListener('input', () => {
+		const isPasswordValid = validateLoginPassword(); // Custom validation logic
+		passwordField.classList.toggle('is-valid', isPasswordValid);
+		passwordField.classList.toggle('is-invalid', !isPasswordValid);
+	});
+};
+
 //? 1) login Handles  form submission and validation
 const handleLoginFormSubmit = () => {
 	const loginForm = getElement('loginForm');
@@ -44,7 +129,14 @@ const handleLoginFormSubmit = () => {
 
 			const email = getElement('loginEmail').value;
 			const password = getElement('loginPassword').value;
-
+			const isEmailValid = validateEmailField('loginEmail');
+			// Trigger HTML5 form validation
+			const isFormValid = loginForm.checkValidity();
+			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// if (!isEmailValid || !validateLoginPassword || !isFormValid) {
+			// 	registerForm.classList.add('was-validated');
+			// 	return;
+			// }
 			//? Handle login process
 			loginUser(email, password, response => {
 				if (response.success) {
@@ -64,6 +156,7 @@ const handleLoginFormSubmit = () => {
 		});
 	}
 };
+// ?---------Token Assigning Process--------------//
 //? 2) Handles logout action
 export const handleLogout = () => {
 	const logOutBtn = getElement('logOutBtn');
@@ -80,70 +173,28 @@ export const handleLogout = () => {
 		});
 	}
 };
-//!----------ALGORITHMS - PRIVATE---------//
-//! Handles URL form submission and processing
-const handleSendUrlFormSubmit = () => {
-	const sendUrlForm = getElement('sendUrlForm');
-	if (sendUrlForm) {
-		sendUrlForm.addEventListener('submit', async e => {
-			e.preventDefault();
 
-			let submittedURL = getElement('urlField').value.trim().toLowerCase();
-			// Validate URL field
-			const isUrlValid = validateUrlField();
-
-			// If URL is valid, proceed with form submission
-			if (isUrlValid) {
-				try {
-					submittedURL = normalizeUrl(submittedURL);
-					submittedURL = formatSubmittedUrl(submittedURL);
-					const subscribedWhitelist = await getUserSubscribedWhitelist();
-
-					// Step 1: Check if URL is in the whitelist
-					const { success, canonicalUrl } = isUrlInWhitelist(submittedURL, subscribedWhitelist);
-
-					if (success) {
-						showNotification('URL is in subscribed whitelist.', success);
-					} else {
-						showNotification('URL is in NOT whitelist.', false);
-						return;
-					}
-					// Step 2:
-					checkCertificate(canonicalUrl, submittedURL);
-					// Step 3:
-					checkMinMash(canonicalUrl);
-				} catch (error) {
-					console.log('Error ' + error);
-					showNotification(error.message, false);
-				}
-			}
-		});
-	}
-};
-//* 0) Helper function to set up form validation
+//*----------RegisterPage - PUBLIC ----------------------
+//todo - RegisterDynamic set up form validation
 const setupRegisterDynamicValidation = () => {
-	const registerForm = document.getElementById('registerForm');
-
+	const registerForm = getElement('registerForm');
 	if (!registerForm) return;
-
 	// Validate the email field in real-time
-	const emailField = document.getElementById('registerEmail');
+	const emailField = getElement('registerEmail');
 	emailField.addEventListener('input', () => {
-		const isValid = emailField.checkValidity();
+		const isValid = validateEmailField();
 		emailField.classList.toggle('is-valid', isValid);
 		emailField.classList.toggle('is-invalid', !isValid);
 	});
-
 	// Validate the password field in real-time
-	const passwordField = document.getElementById('registerPassword');
+	const passwordField = getElement('registerPassword');
 	passwordField.addEventListener('input', () => {
-		const isPasswordValid = validatePassword(); // Custom validation logic
+		const isPasswordValid = validateRegisterPassword(); // Custom validation logic
 		passwordField.classList.toggle('is-valid', isPasswordValid);
 		passwordField.classList.toggle('is-invalid', !isPasswordValid);
 	});
-
 	// Validate the confirm password field in real-time
-	const confirmPasswordField = document.getElementById('confirmPassword');
+	const confirmPasswordField = getElement('confirmPassword');
 	confirmPasswordField.addEventListener('input', () => {
 		const password = passwordField.value.trim();
 		const confirmPassword = confirmPasswordField.value.trim();
@@ -153,16 +204,32 @@ const setupRegisterDynamicValidation = () => {
 		confirmPasswordField.classList.toggle('is-invalid', !isPasswordConfirmed);
 		confirmPasswordField.setCustomValidity(isPasswordConfirmed ? '' : 'Passwords do not match.');
 	});
-
 	// Validate dropdowns in real-time
-	const whitelistDropdown = document.getElementById('whitelistDropdown');
+	const whitelistDropdown = getElement('whitelistDropdown');
 	whitelistDropdown.addEventListener('change', () => {
-		const isValid = !!whitelistDropdown.value;
-		whitelistDropdown.classList.toggle('is-valid', isValid);
-		whitelistDropdown.classList.toggle('is-invalid', !isValid);
-	});
+		const selectedValue = whitelistDropdown.value;
 
-	const securityLevelDropdown = document.getElementById('levelDropdown');
+		if (selectedValue) {
+			fetchAndPopulateAdminsWhitelists(selectedValue);
+			whitelistDropdown.classList.add('is-valid');
+			whitelistDropdown.classList.remove('is-invalid');
+		} else {
+			whitelistDropdown.classList.add('is-invalid');
+			whitelistDropdown.classList.remove('is-valid');
+		}
+	});
+	// Admin selection handling
+	const adminDropdown = getElement('adminDropdown');
+	adminDropdown.addEventListener('change', e => {
+		const selectedAdminName = e.target.value;
+
+		if (selectedAdminName) {
+			fetchAndPopulateAdminsWhitelists(selectedAdminName);
+		} else {
+			console.error('Admin name is not selected.');
+		}
+	});
+	const securityLevelDropdown = getElement('levelDropdown');
 	securityLevelDropdown.addEventListener('change', () => {
 		const isValid = !!securityLevelDropdown.value;
 		securityLevelDropdown.classList.toggle('is-valid', isValid);
@@ -171,22 +238,20 @@ const setupRegisterDynamicValidation = () => {
 };
 //* 0) Register Handles  form submission and validation
 const handleRegisterFormSubmit = () => {
-	const registerForm = document.getElementById('registerForm');
-
+	const registerForm = getElement('registerForm');
 	if (registerForm) {
 		registerForm.addEventListener('submit', e => {
 			e.preventDefault();
-
 			// Initialize form fields
-			const emailField = document.getElementById('registerEmail');
-			const passwordField = document.getElementById('registerPassword');
-			const confirmPasswordField = document.getElementById('confirmPassword');
-			const whitelistDropdown = document.getElementById('whitelistDropdown');
-			const securityLevelDropdown = document.getElementById('levelDropdown');
+			const emailField = getElement('registerEmail').value.trim().toLowerCase();
+			const passwordField = getElement('registerPassword');
+			const confirmPasswordField = getElement('confirmPassword');
+			const whitelistDropdown = getElement('whitelistDropdown');
+			const securityLevelDropdown = getElement('levelDropdown');
 
 			// Perform field validations
-			const isEmailValid = emailField.checkValidity();
-			const isPasswordValid = validatePassword(); // Assuming validatePassword() is defined elsewhere
+			const isEmailValid = validateEmailField('registerEmail');
+			const isPasswordValid = validateRegisterPassword(); // Assuming validatePassword() is defined elsewhere
 			const password = passwordField.value.trim();
 			const confirmPassword = confirmPasswordField.value.trim();
 
@@ -212,15 +277,6 @@ const handleRegisterFormSubmit = () => {
 				registerForm.classList.add('was-validated');
 				return;
 			}
-			// Admin selection
-			getElement('adminDropdown').addEventListener('change', e => {
-				const selectedAdminName = e.target.value;
-				if (selectedAdminName) {
-					fetchAndPopulateAdminsWhitelists(selectedAdminName);
-				} else {
-					console.error('Admin name is not defined.');
-				}
-			});
 
 			// Prepare registration payload
 			const payload = {
@@ -234,18 +290,20 @@ const handleRegisterFormSubmit = () => {
 			registerUser(payload, response => {
 				if (response.success) {
 					navigateToPage('mainPage');
+					// Reset the form fields after successful submission
+					registerForm.reset(); // This resets all form fields
+					registerForm.classList.remove('was-validated'); // Remove the validation class
 				}
 				showNotification(response.message, response.success);
 			});
 		});
 	}
 };
-//* Initialize Register dynamic validation
-setupRegisterDynamicValidation();
-handleRegisterFormSubmit();
 //* Initialize ALL event listeners
 export const setupEventListeners = () => {
 	setupButtonsListeners();
+	setupRegisterDynamicValidation();
+	setupLoginDynamicValidation();
 	handleRegisterFormSubmit();
 	handleLoginFormSubmit();
 	handleSendUrlFormSubmit();
