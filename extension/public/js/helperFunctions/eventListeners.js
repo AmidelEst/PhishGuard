@@ -77,21 +77,19 @@ const handleSendUrlFormSubmit = () => {
 					}
 					//^ Step 2: relevant to all levels
 					const cvScore = await checkCertificate(canonicalUrl, submittedURL);
-					console.log('URL is CV Safe!', cvScore.message);
-					// showNotification(cvScore, cvMessage);
+					showNotification(cvScore, cvScore.cvMessage);
 					if (!cvScore.success) {
 						return;
 					}
-					//* createNewQuery
+					//* createNewQuery //! accumulate results
+					console.log(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore.success);
 					createNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore.success);
 					//! Step 3: only medium and high
-					// const checkMinHashResult = await checkMinMash(canonicalUrl);
-					//! accumulate results
+					const checkMinHashResult = await checkMinMash(canonicalUrl);
 					// let minHashScore = checkMinHashResult.similarity;
 					// const minHashThreshold = 0.8;
 					// let overAllScore = cvScore === 'Yes' && minHashScore !== null && minHashScore >= minHashThreshold ? 1 : 0;
 					// newQuery(submittedURLCopy, isInSubscribedWhitelist, cvScore, minHashScore, overAllScore);
-					console.log(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore.success);
 				} catch (error) {
 					console.log('Error ' + error);
 					showNotification(error.message, false);

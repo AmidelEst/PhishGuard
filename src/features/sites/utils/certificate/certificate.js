@@ -3,6 +3,7 @@ const Certificate = require('../../models/certificate');
 const MonitoredSite = require('../../models/monitoredSite');
 const https = require('https');
 const { AbortController } = require('abort-controller');
+const cron = require('node-cron');
 
 async function fetchSSLCertificate(domain) {
 	const maxRetries = 3;
@@ -29,7 +30,6 @@ async function fetchSSLCertificate(domain) {
 	// If all attempts fail, throw an error after the loop.
 	throw new Error(`Failed to fetch SSL certificate for ${domain} after ${maxRetries} attempts.`);
 }
-
 async function attemptFetchSSLCertificate(domain) {
 	return new Promise((resolve, reject) => {
 		try {
@@ -80,7 +80,6 @@ async function attemptFetchSSLCertificate(domain) {
 		}
 	});
 }
-
 // store certificate and link it to a monitored site
 async function storeCertificateForSite(siteId, certificateData) {
 	try {
@@ -91,22 +90,34 @@ async function storeCertificateForSite(siteId, certificateData) {
 			throw new Error('Incomplete or missing certificate data.');
 		}
 
-		const certificate = new Certificate({
-			commonName: certificateData.commonName,
-			issuer: certificateData.issuer || 'Unknown Issuer',
-			validFrom: certificateData.validFrom,
-			validTo: certificateData.validTo,
-			fingerprint: certificateData.fingerprint || 'No Fingerprint Available'
-		});
-		await certificate.save();
-
+		// Find the monitored site by ID
 		const monitoredSite = await MonitoredSite.findById(siteId);
 		if (!monitoredSite) {
 			throw new Error(`Monitored site with ID ${siteId} not found.`);
 		}
 
-		monitoredSite.certificate = certificate._id;
-		await monitoredSite.save();
+		// Perform upsert operation (update if certificate exists, otherwise insert)
+		const certificate = await Certificate.findOneAndUpdate(
+			{ _id: monitoredSite.certificate }, // Condition to check if the certificate exists for the site
+			{
+				commonName: certificateData.commonName,
+				issuer: certificateData.issuer || 'Unknown Issuer',
+				validFrom: certificateData.validFrom,
+				validTo: certificateData.validTo,
+				fingerprint: certificateData.fingerprint || 'No Fingerprint Available'
+			},
+			{
+				new: true, // Return the updated document
+				upsert: true, // Create a new document if it doesn't exist
+				setDefaultsOnInsert: true // Apply defaults if creating a new document
+			}
+		);
+
+		// Update the monitored site with the certificate ID if a new certificate was created
+		if (!monitoredSite.certificate || monitoredSite.certificate.toString() !== certificate._id.toString()) {
+			monitoredSite.certificate = certificate._id;
+			await monitoredSite.save();
+		}
 
 		return monitoredSite;
 	} catch (err) {
@@ -114,12 +125,27 @@ async function storeCertificateForSite(siteId, certificateData) {
 		throw err;
 	}
 }
-
 //
 async function compareCertificates(monitoredSiteCertificate, newCertificate) {
 	// Compare fingerprints (this is a common way to compare certificates)
 	return monitoredSiteCertificate.fingerprint === newCertificate.fingerprint;
 }
+//----------------------------------
+async function updateAllCertificates() {
+	const sites = await MonitoredSite.find();
+	for (const site of sites) {
+		try {
+			const updatedCertificate = await attemptFetchSSLCertificate(site.canonicalUrl);
+			await storeCertificateForSite(site._id, updatedCertificate);
+		} catch (error) {
+			console.error(`Failed to update certificate for site ${site._id}:`, error);
+		}
+	}
+}
+
+// Weekly full update on Sunday at 2:00 AM
+cron.schedule('0 2 * * 0', updateAllCertificates);
+
 module.exports = {
 	storeCertificateForSite,
 	compareCertificates,

@@ -97,7 +97,6 @@ router.post('/check_url', async (req, res) => {
 		});
 	}
 });
-
 router.post('/new_query', async (req, res) => {
 	const { canonicalUrl } = req.body;
 	console.log('Canonical URL being queried:', canonicalUrl.canonicalUrl);
