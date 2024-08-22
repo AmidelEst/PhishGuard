@@ -52,8 +52,13 @@ export const checkCertificate = async (canonicalUrl, submittedURL) => {
 			message: 'checkCertificate',
 			payload: { whitelistUrl: canonicalUrl, submittedUrl: submittedURL }
 		});
+		if (response.success) {
+			showNotification(response.message, response.success);
+		} else {
+			showNotification('Failed to load admin list. Please try again later.', false);
+		}
 
-		return { success: response.success, message: response.message };
+		return response.success;
 	} catch (error) {
 		console.log('Failed to checkCertificate:', error);
 		showNotification('Failed to checkCertificate.', false);
@@ -82,9 +87,9 @@ export const createNewQuery = async (canonicalUrl, submittedURLCopy, isInSubscri
 			message: 'createNewQuery',
 			payload: { canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore }
 		});
-		return console.log(response.message, response.success);
+		showNotification('Failed to load admin list. Please try again later.', false);
 	} catch (error) {
-		return console.log('Failed to create a new query:', error);
+		return { message: error, success: false };
 	}
 };
 export const newQuery = async (submittedURLCopy, isInSubscribedWhitelist, cvScore, minHashScore, overAllScore) => {

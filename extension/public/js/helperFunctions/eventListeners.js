@@ -76,14 +76,15 @@ const handleSendUrlFormSubmit = () => {
 						return;
 					}
 					//^ Step 2: relevant to all levels
-					const cvScore = await checkCertificate(canonicalUrl, submittedURL);
-					showNotification(cvScore, cvScore.cvMessage);
-					if (!cvScore.success) {
+					const isCvCheckSuccess = await checkCertificate(canonicalUrl, submittedURL);
+
+					console.log('isCvCheckSuccess:', isCvCheckSuccess);
+					if (!isCvCheckSuccess) {
 						return;
 					}
 					//* createNewQuery //! accumulate results
-					console.log(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore.success);
-					createNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore.success);
+
+					createNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, isCvCheckSuccess);
 					//! Step 3: only medium and high
 					const checkMinHashResult = await checkMinMash(canonicalUrl);
 					// let minHashScore = checkMinHashResult.similarity;

@@ -262,12 +262,12 @@ function handleCheckCertificate(submittedURL, sendResponse) {
 				body: JSON.stringify(submittedURL)
 			})
 				.then(res => res.json())
-				.then(data => {
-					return sendResponse({ success: data.success, message: data.message });
-				})
-				.catch(error => {
-					return sendResponse({ success: data.success, message: error });
-				});
+				.then(data =>
+					data.success
+						? sendResponse({ success: true, message: data.message })
+						: sendResponse({ success: false, message: data.message })
+				)
+				.catch(error => sendResponse({ success: false, message: error.message }));
 		} else {
 			return sendResponse({ success: false, message: 'Not authenticated' });
 		}
@@ -290,10 +290,10 @@ function handlerCheckMinMash(submittedURL, sendResponse) {
 					sendResponse({ success: data.success, message: data.message });
 				})
 				.catch(error => {
-					sendResponse({ success: false, message: error.message });
+					sendResponse({ success: false, message: error });
 				});
 		} else {
-			sendResponse({ success: false, message: 'Not authenticated' });
+			return sendResponse({ success: false, message: 'Not authenticated' });
 		}
 	});
 
@@ -302,14 +302,6 @@ function handlerCheckMinMash(submittedURL, sendResponse) {
 
 //! stage 4: handlerCreateNewQuery
 function handlerCreateNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore, sendResponse) {
-	console.log(
-		'🚀 ~ handlerCreateNewQuery ~ canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore:',
-		canonicalUrl,
-		submittedURLCopy,
-		isInSubscribedWhitelist,
-		cvScore
-	);
-
 	chrome.storage.local.get('authToken', result => {
 		if (result.authToken) {
 			fetch(`${apiUrl}/sites/new_query`, {
@@ -323,15 +315,15 @@ function handlerCreateNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhi
 				.then(res => res.json())
 				.then(data => {
 					// Ensure the sendResponse is correctly invoked
-					sendResponse({ success: data.success, message: data.message });
+					return { success: data.success, message: data.message };
 				})
 				.catch(error => {
 					// Handle errors properly
-					sendResponse({ success: false, message: error.message || 'Request failed' });
+					return { success: false, message: error };
 				});
 		} else {
 			// Handle case when no authToken is found
-			sendResponse({ success: false, message: 'Not authenticated' });
+			return { success: false, message: 'Not authenticated' };
 		}
 	});
 
