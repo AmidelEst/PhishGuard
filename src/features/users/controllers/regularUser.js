@@ -178,6 +178,7 @@ regularUserRouter.post('/logout', async (req, res) => {
 regularUserRouter.post('/register', async (req, res) => {
 	try {
 		const { email, password, securityLevel, subscribedWhitelist } = req.body;
+		console.log(email);
 		const existingUser = await RegularUser.findOne({ email });
 
 		if (existingUser) {

@@ -6,7 +6,8 @@ import {
 	validateRegisterPassword,
 	validateEmailField,
 	validateUrlField,
-	validateLoginPassword
+	validateLoginPassword,
+	validateRegisterEmailField
 } from '../domHandlers/validation.js';
 import {
 	loginUser,
@@ -99,48 +100,58 @@ const handleSendUrlFormSubmit = () => {
 		});
 	}
 };
-//todo - LoginDynamic validation
+// todo - LoginDynamic validation
 const setupLoginDynamicValidation = () => {
 	const loginForm = getElement('loginForm');
 	if (!loginForm) return;
+
 	// Validate the email field in real-time
 	const emailField = getElement('loginEmail');
 	emailField.addEventListener('input', () => {
-		const isValid = validateEmailField('loginEmail');
+		const isValid = validateEmailField('loginEmail'); // Assuming validateEmailField() is defined elsewhere
 		emailField.classList.toggle('is-valid', isValid);
 		emailField.classList.toggle('is-invalid', !isValid);
 	});
+
 	// Validate the password field in real-time
 	const passwordField = getElement('loginPassword');
 	passwordField.addEventListener('input', () => {
-		const isPasswordValid = validateLoginPassword(); // Custom validation logic
+		const isPasswordValid = validateLoginPassword(); // Assuming validateLoginPassword() is defined elsewhere
 		passwordField.classList.toggle('is-valid', isPasswordValid);
 		passwordField.classList.toggle('is-invalid', !isPasswordValid);
 	});
 };
 
-//? 1) login Handles  form submission and validation
+//? 1) Login Handles form submission and validation
 const handleLoginFormSubmit = () => {
 	const loginForm = getElement('loginForm');
 	if (loginForm) {
 		loginForm.addEventListener('submit', e => {
 			e.preventDefault();
 
+			// Retrieve form values
 			const email = getElement('loginEmail').value;
 			const password = getElement('loginPassword').value;
+
+			// Perform field validations
 			const isEmailValid = validateEmailField('loginEmail');
+			const isPasswordValid = validateLoginPassword(); // Assuming custom validation logic
+
 			// Trigger HTML5 form validation
 			const isFormValid = loginForm.checkValidity();
-			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			// if (!isEmailValid || !validateLoginPassword || !isFormValid) {
-			// 	registerForm.classList.add('was-validated');
-			// 	return;
-			// }
+
+			// If form is not valid, show feedback and prevent submission
+			if (!isEmailValid || !isPasswordValid || !isFormValid) {
+				loginForm.classList.add('was-validated');
+				return;
+			}
+
 			//? Handle login process
 			loginUser(email, password, response => {
 				if (response.success) {
 					navigateToPage('sendUrlPage');
-					// Retrieve the subWhitelistId + fetch the corresponding whitelist
+
+					// Retrieve the subscribedWhitelistId + fetch the corresponding whitelist
 					fetchSubscribedWhitelistId(subscribedWhitelistId => {
 						if (subscribedWhitelistId) {
 							fetchAndPopulateWhitelistUrls(subscribedWhitelistId); // Populate the URLs
@@ -155,6 +166,7 @@ const handleLoginFormSubmit = () => {
 		});
 	}
 };
+
 // ?---------Token Assigning Process--------------//
 //? 2) Handles logout action
 export const handleLogout = () => {
@@ -174,17 +186,19 @@ export const handleLogout = () => {
 };
 
 //*----------RegisterPage - PUBLIC ----------------------
-//todo - RegisterDynamic set up form validation
+// todo - RegisterDynamic set up form validation
 const setupRegisterDynamicValidation = () => {
 	const registerForm = getElement('registerForm');
 	if (!registerForm) return;
+
 	// Validate the email field in real-time
 	const emailField = getElement('registerEmail');
 	emailField.addEventListener('input', () => {
-		const isValid = validateEmailField();
+		const isValid = emailField.checkValidity();
 		emailField.classList.toggle('is-valid', isValid);
 		emailField.classList.toggle('is-invalid', !isValid);
 	});
+
 	// Validate the password field in real-time
 	const passwordField = getElement('registerPassword');
 	passwordField.addEventListener('input', () => {
@@ -192,6 +206,7 @@ const setupRegisterDynamicValidation = () => {
 		passwordField.classList.toggle('is-valid', isPasswordValid);
 		passwordField.classList.toggle('is-invalid', !isPasswordValid);
 	});
+
 	// Validate the confirm password field in real-time
 	const confirmPasswordField = getElement('confirmPassword');
 	confirmPasswordField.addEventListener('input', () => {
@@ -203,13 +218,12 @@ const setupRegisterDynamicValidation = () => {
 		confirmPasswordField.classList.toggle('is-invalid', !isPasswordConfirmed);
 		confirmPasswordField.setCustomValidity(isPasswordConfirmed ? '' : 'Passwords do not match.');
 	});
+
 	// Validate dropdowns in real-time
 	const whitelistDropdown = getElement('whitelistDropdown');
 	whitelistDropdown.addEventListener('change', () => {
 		const selectedValue = whitelistDropdown.value;
-
 		if (selectedValue) {
-			fetchAndPopulateAdminsWhitelists(selectedValue);
 			whitelistDropdown.classList.add('is-valid');
 			whitelistDropdown.classList.remove('is-invalid');
 		} else {
@@ -217,17 +231,23 @@ const setupRegisterDynamicValidation = () => {
 			whitelistDropdown.classList.remove('is-valid');
 		}
 	});
+
 	// Admin selection handling
 	const adminDropdown = getElement('adminDropdown');
 	adminDropdown.addEventListener('change', e => {
 		const selectedAdminName = e.target.value;
-
 		if (selectedAdminName) {
 			fetchAndPopulateAdminsWhitelists(selectedAdminName);
+			adminDropdown.classList.add('is-valid');
+			adminDropdown.classList.remove('is-invalid');
 		} else {
+			adminDropdown.classList.add('is-invalid');
+			adminDropdown.classList.remove('is-valid');
 			console.error('Admin name is not selected.');
 		}
 	});
+
+	// Validate security level dropdown in real-time
 	const securityLevelDropdown = getElement('levelDropdown');
 	securityLevelDropdown.addEventListener('change', () => {
 		const isValid = !!securityLevelDropdown.value;
@@ -235,22 +255,24 @@ const setupRegisterDynamicValidation = () => {
 		securityLevelDropdown.classList.toggle('is-invalid', !isValid);
 	});
 };
-//* 0) Register Handles  form submission and validation
+
+//* 0) Register Handles form submission and validation
 const handleRegisterFormSubmit = () => {
 	const registerForm = getElement('registerForm');
 	if (registerForm) {
 		registerForm.addEventListener('submit', e => {
 			e.preventDefault();
+
 			// Initialize form fields
-			const emailField = getElement('registerEmail').value.trim().toLowerCase();
+			const emailField = getElement('registerEmail');
 			const passwordField = getElement('registerPassword');
 			const confirmPasswordField = getElement('confirmPassword');
 			const whitelistDropdown = getElement('whitelistDropdown');
 			const securityLevelDropdown = getElement('levelDropdown');
 
 			// Perform field validations
-			const isEmailValid = validateEmailField('registerEmail');
-			const isPasswordValid = validateRegisterPassword(); // Assuming validatePassword() is defined elsewhere
+			const isEmailValid = validateRegisterEmailField('registerEmail'); // Assuming custom validation logic
+			const isPasswordValid = validateRegisterPassword(); // Assuming custom validation logic
 			const password = passwordField.value.trim();
 			const confirmPassword = confirmPasswordField.value.trim();
 
@@ -263,23 +285,34 @@ const handleRegisterFormSubmit = () => {
 			const isSecurityLevelValid = !!securityLevelDropdown.value;
 
 			// Mark fields as validated dynamically
-			if (isPasswordValid && isPasswordConfirmed) {
-				passwordField.classList.add('was-validated');
-				confirmPasswordField.classList.add('was-validated');
-			}
+			passwordField.classList.toggle('is-valid', isPasswordValid);
+			passwordField.classList.toggle('is-invalid', !isPasswordValid);
+			confirmPasswordField.classList.toggle('is-valid', isPasswordConfirmed);
+			confirmPasswordField.classList.toggle('is-invalid', !isPasswordConfirmed);
+			whitelistDropdown.classList.toggle('is-valid', isWhitelistValid);
+			whitelistDropdown.classList.toggle('is-invalid', !isWhitelistValid);
+			securityLevelDropdown.classList.toggle('is-valid', isSecurityLevelValid);
+			securityLevelDropdown.classList.toggle('is-invalid', !isSecurityLevelValid);
 
 			// Trigger HTML5 form validation
 			const isFormValid = registerForm.checkValidity();
 
 			// If form is not valid, show feedback and prevent submission
-			if (!isFormValid || !isEmailValid || !isPasswordValid || !isPasswordConfirmed) {
+			if (
+				!isFormValid ||
+				!isEmailValid ||
+				!isPasswordValid ||
+				!isPasswordConfirmed ||
+				!isWhitelistValid ||
+				!isSecurityLevelValid
+			) {
 				registerForm.classList.add('was-validated');
 				return;
 			}
 
 			// Prepare registration payload
 			const payload = {
-				email: emailField.value.trim(),
+				email: emailField.value,
 				password,
 				subscribedWhitelist: whitelistDropdown.value,
 				securityLevel: securityLevelDropdown.value
@@ -298,6 +331,7 @@ const handleRegisterFormSubmit = () => {
 		});
 	}
 };
+
 //* Initialize ALL event listeners
 export const setupEventListeners = () => {
 	setupButtonsListeners();

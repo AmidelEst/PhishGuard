@@ -34,6 +34,23 @@ export const validateEmailField = formKind => {
 	return isValid;
 };
 
+export const validateRegisterEmailField = () => {
+	const emailField = getElement('registerEmail');
+	const emailValue = emailField.value.trim().toLowerCase();
+
+	//* email pattern validation
+	const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+	const isValid = emailPattern.test(emailValue);
+
+	if (!isValid) {
+		emailField.classList.add('is-invalid');
+	} else {
+		emailField.classList.remove('is-invalid');
+		emailField.classList.add('is-valid');
+	}
+	return isValid;
+};
 //* Login Password validation function
 export const validateLoginPassword = () => {
 	const password = getElement('loginPassword').value.trim();

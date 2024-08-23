@@ -133,9 +133,8 @@ function handleLogin(userCredentials) {
 				// Store login details in chrome.storage.local
 				chrome.storage.local.set(
 					{
-						userStatus: 'loggedIn',
 						authToken: data.accessToken,
-						refreshToken: data.refreshToken, // Store refresh token
+						refreshToken: data.refreshToken,
 						subscribedWhitelistId: data.subscribedWhitelistId
 					},
 					() => {
@@ -267,7 +266,7 @@ function handleCheckCertificate(submittedURL, sendResponse) {
 						? sendResponse({ success: true, message: data.message })
 						: sendResponse({ success: false, message: data.message })
 				)
-				.catch(error => sendResponse({ success: false, message: error.message }));
+				.catch(error => sendResponse({ success: false, message: error }));
 		} else {
 			return sendResponse({ success: false, message: 'Not authenticated' });
 		}
@@ -287,10 +286,10 @@ function handlerCheckMinMash(submittedURL, sendResponse) {
 			})
 				.then(res => res.json())
 				.then(data => {
-					sendResponse({ success: data.success, message: data.message });
+					return sendResponse({ success: data.success, message: data.message });
 				})
 				.catch(error => {
-					sendResponse({ success: false, message: error });
+					return sendResponse({ success: false, message: error });
 				});
 		} else {
 			return sendResponse({ success: false, message: 'Not authenticated' });
@@ -314,20 +313,16 @@ function handlerCreateNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhi
 			})
 				.then(res => res.json())
 				.then(data => {
-					// Ensure the sendResponse is correctly invoked
-					return { success: data.success, message: data.message };
+					return sendResponse({ success: data.success, message: data.message });
 				})
 				.catch(error => {
-					// Handle errors properly
-					return { success: false, message: error };
+					return sendResponse({ success: false, message: error });
 				});
 		} else {
-			// Handle case when no authToken is found
-			return { success: false, message: 'Not authenticated' };
+			return sendResponse({ success: false, message: 'Not authenticated' });
 		}
 	});
 
-	// Returning true to indicate asynchronous response will be sent later
 	return true;
 }
 
@@ -366,12 +361,12 @@ function fetchAdminsWhitelists(adminName, sendResponse) {
 		.then(response => response.json())
 		.then(data => {
 			if (data.success) {
-				sendResponse({ success: true, whitelists: data.whitelists });
+				return sendResponse({ success: true, whitelists: data.whitelists });
 			} else {
-				sendResponse({ success: false, message: 'Failed to fetch whitelists' });
+				return sendResponse({ success: false, message: 'Failed to fetch whitelists' });
 			}
 		})
 		.catch(error => {
-			sendResponse({ success: false, message: error.message });
+			return sendResponse({ success: false, message: error.message });
 		});
 }

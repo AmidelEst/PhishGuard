@@ -26,14 +26,14 @@ body {
 
 /* Headers */
 h1 {
-	font-weight: 600;
+	font-weight: 600px;
 	font-size: 25px;
 	margin-bottom: 3vh;
 }
 #mainPage .row {
-	margin-bottom: 20%; /* Pushes buttons up from the bottom */
+	/*margin-bottom: 20%;*/ /* Pushes buttons up from the bottom */
 	width: 100%;
-	margin-top: 45%;
+	margin-top: 60%;
 	/* display: flex; */
 	/* justify-content: center; */
 }
@@ -51,6 +51,7 @@ h1 {
 	border-color: #008cba;
 	font-size: 20px;
 	margin-top: 10px;
+	font-weight: 700;
 }
 
 .btn:hover {
