@@ -4,7 +4,7 @@ const express = require('express');
 const regularUserRouter = express.Router();
 //input handling
 const sanitize = require('mongo-sanitize');
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const dotenv = require('dotenv');
 dotenv.config();
 // Models
@@ -71,7 +71,7 @@ regularUserRouter.post('/login', async (req, res) => {
 			return res.status(401).send({ success: false, message: 'User has no subscribed whitelist.' });
 		}
 		// Compare passwords
-		const isMatch = await bcrypt.compare(password, user.password);
+		const isMatch = await bcryptjs.compare(password, user.password);
 		if (!isMatch) {
 			return res.status(401).send({ success: false, message: 'Invalid credentials.' });
 		}
@@ -185,7 +185,7 @@ regularUserRouter.post('/register', async (req, res) => {
 			return res.status(409).send({ success: false, message: 'User already exists' });
 		}
 		const saltRounds = parseInt(process.env.SALT_ROUNDS || 10);
-		const hashedPassword = await bcrypt.hash(password, saltRounds);
+		const hashedPassword = await bcryptjs.hash(password, saltRounds);
 		const newUser = new RegularUser({
 			email,
 			password: hashedPassword,

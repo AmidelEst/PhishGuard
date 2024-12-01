@@ -17,7 +17,7 @@
 	"dependencies": {
 		"@floating-ui/dom": "^1.6.10",
 		"abort-controller": "^3.0.0",
-		"bcrypt": "^5.1.1",
+		"bcryptjs": "^2.4.3",
 		"cheerio": "^1.0.0-rc.12",
 		"cors": "^2.8.5",
 		"dir-archiver": "^2.1.0",

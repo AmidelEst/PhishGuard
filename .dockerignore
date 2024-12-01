@@ -1,6 +1,6 @@
-node_modules
-npm-debug.log
-Dockerfile
-.dockerignore
-.venv
-.env
+node_modules;
+npm-debug.log.env; // prettier-ignore
+Dockerfile;
+docker-compose.yml; // prettier-ignore
+extension;
+node_modules ;

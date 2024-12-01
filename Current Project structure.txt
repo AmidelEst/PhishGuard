@@ -1,0 +1,90 @@
+front-end
+PhishGuard/
+└── extension/
+    ├── manifest.json       # Manifest v3 file for Chrome extension
+    ├── background/
+    │   └── background.js   # Background script for Chrome extension (Manifest v3)
+    └── public/       
+   	├── css/
+    	│   └── popup.css
+    	├── images/
+    	│   ├── 128-pic.png
+    	│   ├── admin icon.png
+    	│   ├── admin-50.png
+    	│   ├── admin.png
+    	│   └── cyber-security.png
+    	├── js/
+    	│   ├── domHandlers/
+    	│   │   ├── dropdown.js
+    	│   │   ├── getElement.js
+    	│   │   ├── navigation.js
+    	│   │   ├── notification.js
+    	│   │   └── validation.js
+    	│   ├── helperFunctions/
+    	│   │   ├── api.js
+    	│   │   ├── urlUtils.js
+    	│   │   ├── sessionManager.js
+    	│   │   └── eventListeners.js
+    	│   └── popup/
+    	│       └── popup.js
+   	├── popup.html
+    	└── vendors/
+        	├── css/
+        	│   └── bootstrap.min.css
+       		└── js/
+                    ├── bootstrap.bundle.min.js
+            	    ├── bootstrap.min.js
+            	    ├── popper.min.js
+            	    └── query-3.6.0.min.js	
+  	
+
+back-end
+PhishGuard/
+├── src/
+│   └── features/
+│       ├── reports/
+│       │   └── models/
+│       │       ├── adminReport.js
+│       │       └── securityReport.js
+│       ├── sites/
+│       │   ├── controllers/
+│       │   │   ├── sites.js
+│       │   │   └── whitelist.js
+│       │   ├── models/
+│       │   │   ├── monitoredSite.js
+│       │   │   ├── certificate.js
+│       │   │   └── whitelist.js
+│       │   └── utils/
+│       │       ├── certificate/
+│       │       │   └── certificate.js
+│       │       ├── url/
+│       │       │   └── url.js
+│       │       ├── minhash/
+│       │       │   ├── similarityScoring.js
+│       │       │   └── urlToHash.js
+│       │       └── whitelist/
+│       │           ├── dynamic.json
+│       │           └── static.json
+│       └── users/
+│           ├── controllers/
+│           │   ├── adminUser.js
+│           │   └── regularUser.js
+│           ├── middleware/
+│           │   └── roleMiddleware.js
+│           ├── models/
+│           │   ├── adminUser.js
+│           │   └── regularUser.js
+│           └── utils/
+│               └── auth/
+│                   ├── authUtils.js
+│                   └── redisClient.js
+├── .dockerignore
+├── .env                         # Environment variables for Node.js app
+├── .gitignore
+├── content.js                   # Content script for Chrome extension
+├── Dockerfile                   # Dockerfile for Node.js app
+├── LICENSE
+├── package-lock.json
+├── package.json                 # Dependencies including Node.js, Express, Redis, etc.
+├── README.md
+└── server.js                    # Express server setup

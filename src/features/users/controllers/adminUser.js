@@ -14,7 +14,7 @@ const { normalizeUrl, generateUrlPattern } = require('../../sites/utils/urls/url
 const { generateAccessToken, getTokenExpiration } = require('../utils/auth/authUtils');
 const roleMiddleware = require('../middleware/roleMiddleware');
 const redisClient = require('../utils/auth/redisClient');
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 
 // 0) register - adminUser
 adminUserRouter.post('/register', async (req, res) => {
@@ -26,7 +26,7 @@ adminUserRouter.post('/register', async (req, res) => {
 			return res.status(409).send({ success: false, message: 'User already exists' });
 		}
 
-		const hashedPassword = await bcrypt.hash(password, 10);
+		const hashedPassword = await bcryptjs.hash(password, 10);
 		const newUser = new AdminUser({ ...req.body, password: hashedPassword });
 		await newUser.save();
 
@@ -48,7 +48,7 @@ adminUserRouter.post('/login', async (req, res) => {
 			return res.status(401).send({ success: false, message: 'Authentication failed. User not found.' });
 		}
 
-		const isMatch = await bcrypt.compare(password, user.password);
+		const isMatch = await bcryptjs.compare(password, user.password);
 		if (!isMatch) {
 			return res.status(401).send({ success: false, message: 'Authentication failed. Wrong password.' });
 		}

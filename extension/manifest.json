@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Phishing Detector",
 	"version": "1.0",
-	"host_permissions": ["http://localhost:3001/"],
+	"host_permissions": ["http://app:3001/*", "http://localhost:3000/*"],
 	"description": "A Chrome extension to protect users from phishing attacks.",
 	"background": {
 		"service_worker": "background/background.js"
@@ -18,6 +18,6 @@
 	"permissions": ["storage", "tabs", "activeTab", "webRequest"],
 	"options_page": "public/options.html",
 	"content_security_policy": {
-		"extension_pages": "default-src 'self'; img-src 'self' data:; script-src 'self'; connect-src 'self' http://localhost:3001; object-src 'none'; style-src 'self' 'unsafe-inline';"
+		"extension_pages": "default-src 'self'; img-src 'self' data:; script-src 'self'; connect-src 'self' http://localhost:3001 http://localhost:3000 https://app:3001; object-src 'none'; style-src 'self' 'unsafe-inline';"
 	}
 }

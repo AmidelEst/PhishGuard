@@ -1,6 +1,6 @@
 //------------------------------------------------//
 // extension/background/background.js
-let apiUrl = 'http://localhost:3001';
+const apiUrl = 'http://localhost:3001';
 // ~------------Listen to Messages----------------//
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log(request.message);

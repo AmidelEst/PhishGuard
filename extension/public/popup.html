@@ -1,211 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Anti-Phishing Extension</title>
+		<!-- Content Security Policy -->
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="default-src 'self'; img-src 'self' data:; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3001 http://localhost:3000 https://app:3001;"
+		/>
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Anti-Phishing Extension</title>
-  <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; img-src 'self' data:; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline';">
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="./vendors/css/bootstrap.min.css">
-  <!-- SELF CSS -->
-  <link rel="stylesheet" href="./css/popup.css">
-</head>
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="./vendors/css/bootstrap.min.css" />
+		<!-- SELF CSS -->
+		<link rel="stylesheet" href="./css/popup.css" />
+	</head>
 
-<body>
-  <!-- Main Page -->
-  <div id="mainPage" class="container -flex flex-column justify-content-center align-items-center">
-    <h1>Anti-Phishing Extension</h1>
-    <div class="row">
+	<body>
+		<!-- Main Page -->
+		<div id="mainPage" class="container -flex flex-column justify-content-center align-items-center">
+			<h1>Anti-Phishing Extension</h1>
+			<div class="row">
+				<!-- GOTO Login -->
+				<button id="goToLogin" class="btn btn-outline-primary">Log In</button>
+				<!-- GOTO Register -->
+				<button id="goToRegister" class="btn btn-outline-primary mb-2">Register</button>
+			</div>
+		</div>
 
-      <!-- GOTO Login -->
-      <button id="goToLogin" class="btn btn-outline-primary">Log In</button>
-      <!-- GOTO Register -->
-      <button id="goToRegister" class="btn btn-outline-primary  mb-2">Register</button>
-    </div>
-  </div>
+		<!-- Registration Page -->
+		<div id="registerPage" class="container hidden">
+			<!-- Back Button -->
+			<button id="goBackBtnFromRegister" type="button" class="btn btn-outline-primary btn-right-corner">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					fill="currentColor"
+					class="bi bi-arrow-right-circle-fill"
+					viewBox="0 0 16 16"
+				>
+					<path
+						d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"
+					/>
+				</svg>
+			</button>
+			<!-- Registration Page -->
+			<main class="form-Register">
+				<h1>Sign Up</h1>
 
-  <!-- Registration Page -->
-  <div id="registerPage" class="container hidden">
-    <!-- Back Button -->
-    <button id="goBackBtnFromRegister" type="button" class="btn btn-outline-primary btn-right-corner">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-        class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
-        <path
-          d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z" />
-      </svg>
-    </button>
-    <!-- Registration Page -->
-    <main class="form-Register">
-      <h1>Sign Up</h1>
+				<!-- Registration Form -->
+				<form id="registerForm" class="needs-validation" novalidate>
+					<!-- Email Input -->
+					<div class="form-group mb-3">
+						<label for="registerEmail" class="form-label">Email address</label>
+						<input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required />
+						<div class="invalid-feedback">Please enter a valid email address.</div>
+					</div>
+					<!-- Password Input -->
+					<div class="form-group mb-3">
+						<label for="registerPassword" class="form-label">Password</label>
+						<input type="password" class="form-control" id="registerPassword" placeholder="Password" required />
 
-      <!-- Registration Form -->
-      <form id="registerForm" class="needs-validation" novalidate>
-        <!-- Email Input -->
-        <div class="form-group mb-3">
-          <label for="registerEmail" class="form-label">Email address</label>
-          <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
-          <div class="invalid-feedback">Please enter a valid email address.</div>
-        </div>
-        <!-- Password Input -->
-        <div class="form-group mb-3">
-          <label for="registerPassword" class="form-label">Password</label>
-          <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
+						<!-- Password Feedback -->
+						<div id="passwordLengthFeedback" class="invalid-feedback">Password must be between 8-20 characters.</div>
+						<div id="passwordLetterNumberFeedback" class="invalid-feedback">
+							Password must contain both letters and numbers.
+						</div>
+						<div id="passwordSpecialCharFeedback" class="invalid-feedback">
+							Password must contain at least one special character.
+						</div>
+						<div id="passwordNoSpaceEmojiFeedback" class="invalid-feedback">
+							Password cannot contain spaces or emojis.
+						</div>
+					</div>
+					<!-- Confirm Password Input -->
+					<div class="form-group mb-3">
+						<label for="confirmPassword" class="form-label">Confirm Password</label>
+						<input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required />
+						<div class="invalid-feedback">Please confirm your password.</div>
+					</div>
+					<!-- Admin and Whitelist Dropdowns -->
+					<div class="row mb-3">
+						<!-- Admin Dropdown -->
+						<div class="form-group col">
+							<label for="adminDropdown" class="form-label">Subscribe to Admin</label>
+							<select id="adminDropdown" class="form-control" required>
+								<option value="" disabled selected>Select an Admin...</option>
+							</select>
+							<div class="invalid-feedback">Please select an admin.</div>
+						</div>
+						<!-- Whitelist Dropdown -->
+						<div class="form-group col">
+							<label for="whitelistDropdown" class="form-label">Subscribe to Whitelist</label>
+							<select id="whitelistDropdown" class="form-control" required>
+								<option value="" disabled selected>Select a Whitelist...</option>
+							</select>
+							<div class="invalid-feedback">Please select a whitelist.</div>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<!-- Protection Level Dropdown -->
+						<div class="form-group col">
+							<label for="levelDropdown" class="form-label">Protection level</label>
+							<select id="levelDropdown" class="form-control" required>
+								<option value="" disabled selected>Select protection level...</option>
+								<option value="basic">Basic</option>
+								<option value="medium">Medium</option>
+								<option value="high">High</option>
+							</select>
+							<div class="invalid-feedback">Please select a protection level.</div>
+						</div>
+						<!-- Terms and Conditions -->
+						<div class="form-check col">
+							<input class="form-check-input" type="checkbox" id="agreeTerms" required />
+							<label class="form-check-label" for="agreeTerms">I agree to the terms and conditions</label>
+							<div class="invalid-feedback">You must agree to the terms and conditions.</div>
+						</div>
+					</div>
+					<!-- Submit Button -->
+					<button type="submit" id="submitRegisterBtn" class="btn btn-outline-primary btn-sm btn-down-left-corner">
+						Register
+					</button>
+				</form>
+			</main>
+		</div>
 
-          <!-- Password Feedback -->
-          <div id="passwordLengthFeedback" class="invalid-feedback">Password must be between 8-20
-            characters.
-          </div>
-          <div id="passwordLetterNumberFeedback" class="invalid-feedback">Password must contain
-            both letters and
-            numbers.</div>
-          <div id="passwordSpecialCharFeedback" class="invalid-feedback">Password must contain at
-            least one
-            special character.</div>
-          <div id="passwordNoSpaceEmojiFeedback" class="invalid-feedback">Password cannot contain
-            spaces or
-            emojis.</div>
-        </div>
-        <!-- Confirm Password Input -->
-        <div class="form-group mb-3">
-          <label for="confirmPassword" class="form-label">Confirm Password</label>
-          <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
-          <div class="invalid-feedback">Please confirm your password.</div>
-        </div>
-        <!-- Admin and Whitelist Dropdowns -->
-        <div class="row mb-3">
-          <!-- Admin Dropdown -->
-          <div class="form-group col">
-            <label for="adminDropdown" class="form-label">Subscribe to Admin</label>
-            <select id="adminDropdown" class="form-control" required>
-              <option value="" disabled selected>Select an Admin...</option>
-            </select>
-            <div class="invalid-feedback">Please select an admin.</div>
-          </div>
-          <!-- Whitelist Dropdown -->
-          <div class="form-group col">
-            <label for="whitelistDropdown" class="form-label">Subscribe to Whitelist</label>
-            <select id="whitelistDropdown" class="form-control" required>
-              <option value="" disabled selected>Select a Whitelist...</option>
-            </select>
-            <div class="invalid-feedback">Please select a whitelist.</div>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <!-- Protection Level Dropdown -->
-          <div class="form-group col">
-            <label for="levelDropdown" class="form-label">Protection level</label>
-            <select id="levelDropdown" class="form-control" required>
-              <option value="" disabled selected>Select protection level...</option>
-              <option value="basic">Basic</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-            <div class="invalid-feedback">Please select a protection level.</div>
-          </div>
-          <!-- Terms and Conditions -->
-          <div class="form-check col">
-            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-            <label class="form-check-label" for="agreeTerms">I agree to the terms and conditions</label>
-            <div class="invalid-feedback">You must agree to the terms and conditions.</div>
-          </div>
-        </div>
-        <!-- Submit Button -->
-        <button type="submit" id="submitRegisterBtn"
-          class="btn btn-outline-primary btn-sm btn-down-left-corner">Register</button>
-      </form>
-    </main>
-  </div>
+		<!-- Login Page -->
+		<div id="loginPage" class="container hidden">
+			<button id="goBackBtnFromLogin" type="button" class="btn btn-outline-primary btn-right-corner">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					fill="currentColor"
+					class="bi bi-arrow-right-circle-fill"
+					viewBox="0 0 16 16"
+				>
+					<path
+						d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"
+					/>
+				</svg>
+			</button>
 
-  <!-- Login Page -->
-  <div id="loginPage" class="container hidden">
-    <button id="goBackBtnFromLogin" type="button" class="btn btn-outline-primary btn-right-corner">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-        class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
-        <path
-          d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z" />
-      </svg>
-    </button>
+			<main class="form-login">
+				<h1>Log In</h1>
+				<!-- Login Form -->
+				<form id="loginForm">
+					<!-- Email Input -->
+					<div class="form-group mb-3">
+						<label for="loginEmail" class="form-label">Email address</label>
+						<input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required />
+						<div class="invalid-feedback">Please enter a valid email address.</div>
+					</div>
 
-    <main class="form-login">
-      <h1>Log In</h1>
-      <!-- Login Form -->
-      <form id="loginForm">
-        <!-- Email Input -->
-        <div class="form-group mb-3">
-          <label for="loginEmail" class="form-label">Email address</label>
-          <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required>
-          <div class="invalid-feedback">Please enter a valid email address.</div>
-        </div>
+					<!-- Password Input -->
+					<div class="form-group mb-3">
+						<label for="loginPassword" class="form-label">Password</label>
+						<input type="password" class="form-control" id="loginPassword" placeholder="Password" required />
+						<div class="invalid-feedback">Please enter your password.</div>
+					</div>
 
-        <!-- Password Input -->
-        <div class="form-group mb-3">
-          <label for="loginPassword" class="form-label">Password</label>
-          <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
-          <div class="invalid-feedback">Please enter your password.</div>
-        </div>
+					<!-- Remember Me Checkbox -->
+					<div class="form-check mb-4">
+						<input class="form-check-input" type="checkbox" id="rememberMeSwitch" />
+						<label for="rememberMeSwitch" class="form-check-label">Remember me</label>
+					</div>
 
-        <!-- Remember Me Checkbox -->
-        <div class="form-check mb-4">
-          <input class="form-check-input" type="checkbox" id="rememberMeSwitch">
-          <label for="rememberMeSwitch" class="form-check-label">Remember me</label>
-        </div>
+					<!-- Submit Button -->
+					<button type="submit" id="submitLoginBtn" class="btn btn-outline-primary btn-sm btn-down-left-corner">
+						Login
+					</button>
+				</form>
+			</main>
+		</div>
 
-        <!-- Submit Button -->
-        <button type="submit" id="submitLoginBtn"
-          class="btn btn-outline-primary btn-sm btn-down-left-corner">Login</button>
-      </form>
-    </main>
-  </div>
+		<!-- Send URL Page -->
+		<div id="sendUrlPage" class="container hidden">
+			<!-- Log-Out Button -->
+			<button id="logOutBtn" type="button" class="btn btn-outline-primary btn-sm btn-right-corner">
+				<span class="glyphicon glyphicon-log-out"></span> Log out
+			</button>
 
-  <!-- Send URL Page -->
-  <div id="sendUrlPage" class="container hidden">
-    <!-- Log-Out Button -->
-    <button id="logOutBtn" type="button" class="btn btn-outline-primary btn-sm btn-right-corner">
-      <span class="glyphicon glyphicon-log-out"></span> Log out
-    </button>
+			<main class="sendUrlPage">
+				<h1>Send URL</h1>
+				<!-- Send URL Form -->
+				<form id="sendUrlForm">
+					<div class="form-group mb-3">
+						<label for="urlField" class="form-label">Enter a URL:</label>
+						<input type="text" class="form-control" id="urlField" placeholder="https://www.example.com" required />
+						<div class="invalid-feedback">Please enter a valid URL.</div>
+					</div>
+					<button type="submit" class="btn btn-outline-primary mt-2">Is Safe?</button>
+				</form>
 
-    <main class="sendUrlPage">
-      <h1>Send URL</h1>
-      <!-- Send URL Form -->
-      <form id="sendUrlForm">
-        <div class="form-group mb-3">
-          <label for="urlField" class="form-label">Enter a URL:</label>
-          <input type="text" class="form-control" id="urlField" placeholder="https://www.example.com" required>
-          <div class="invalid-feedback">Please enter a valid URL.</div>
-        </div>
-        <button type="submit" class="btn btn-outline-primary mt-2">Is Safe?</button>
-      </form>
+				<!-- Subscribed Whitelist URLs -->
+				<div>
+					<h2>Subscribed Whitelist URLs:</h2>
+					<div id="whitelistUrlsContainer" class="mt-4">
+						<ul id="whitelistUrls" class="list-group">
+							<!-- URLs will be populated here -->
+						</ul>
+					</div>
+				</div>
+			</main>
+		</div>
 
-      <!-- Subscribed Whitelist URLs -->
-      <div>
-        <h2>Subscribed Whitelist URLs:</h2>
-        <div id="whitelistUrlsContainer" class="mt-4">
-          <ul id="whitelistUrls" class="list-group">
-            <!-- URLs will be populated here -->
-          </ul>
-        </div>
-      </div>
-    </main>
-  </div>
+		<!-- Notification -->
+		<div id="notification" class="notification hidden">
+			<span id="notification-message"></span>
+			<button id="close-notification-button" class="btn btn-outline-primary btn-sm mt-2">Close</button>
+		</div>
 
-  <!-- Notification -->
-  <div id="notification" class="notification hidden">
-    <span id="notification-message"></span>
-    <button id="close-notification-button" class="btn btn-outline-primary btn-sm mt-2">Close</button>
-  </div>
+		<!-- Backdrop -->
+		<div id="backdrop" class="backdrop hidden"></div>
 
-  <!-- Backdrop -->
-  <div id="backdrop" class="backdrop hidden"></div>
-
-  <script type="module" src="./js/popup/popup.js"></script>
-  <!-- Bootstrap JS and dependencies -->
-  <script src="./vendors/js/query-3.6.0.min.js"></script>
-  <!-- <script src="./vendors/js/popper.min.js"></script>  -->
-  <script src="./vendors/js/bootstrap.bundle.min.js"></script>
-  <!-- <script src="./vendors/js/bootstrap.min.js"></script> -->
-</body>
-
+		<script type="module" src="./js/popup/popup.js"></script>
+		<!-- Bootstrap JS and dependencies -->
+		<script src="./vendors/js/query-3.6.0.min.js"></script>
+		<!-- <script src="./vendors/js/popper.min.js"></script>  -->
+		<script src="./vendors/js/bootstrap.bundle.min.js"></script>
+		<!-- <script src="./vendors/js/bootstrap.min.js"></script> -->
+	</body>
 </html>
