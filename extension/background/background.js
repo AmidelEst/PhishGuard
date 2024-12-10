@@ -41,6 +41,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		case 'checkMinMash':
 			handlerCheckMinMash(request.payload, sendResponse);
 			return true;
+		//&	stage 4: createNewQuery
 		case 'createNewQuery':
 			handlerCreateNewQuery(request.payload, sendResponse);
 			return true;
@@ -61,7 +62,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 //& ---------Handler functions--------------------//
 //? ---------Token Assigning Process--------------//
-//?
+//?checkAuthToken
 function checkAuthToken(sendResponse) {
 	chrome.storage.local.get(['authToken'], function (result) {
 		if (result.authToken) {
@@ -71,7 +72,7 @@ function checkAuthToken(sendResponse) {
 		}
 	});
 }
-//?
+//?refreshAccessToken
 function refreshAccessToken() {
 	return new Promise((resolve, reject) => {
 		chrome.storage.local.get('refreshToken', function (result) {
@@ -192,6 +193,7 @@ function handleLogout(sendResponse) {
 			// No tokens found
 			sendResponse({ success: false, message: 'No tokens found in storage' });
 		}
+		return true;
 	});
 
 	// Ensure async sendResponse is handled properly
@@ -246,10 +248,12 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 				sendResponse({ success: false, message: error.message });
 			});
 	});
+	return true;
 }
 //!----------ALGORITHMS ----------PRIVATE---------//
 //! stage 2: check CV handler
-function handleCheckCertificate(submittedURL, sendResponse) {
+function handleCheckCertificate(payload, sendResponse) {
+	const { canonicalUrl, submittedURL } = payload;
 	chrome.storage.local.get('authToken', result => {
 		if (result.authToken) {
 			fetch(`${apiUrl}/sites/check_cv`, {
@@ -258,19 +262,22 @@ function handleCheckCertificate(submittedURL, sendResponse) {
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${result.authToken}`
 				},
-				body: JSON.stringify(submittedURL)
+				body: JSON.stringify(canonicalUrl, submittedURL)
 			})
 				.then(res => res.json())
-				.then(data =>
-					data.success
-						? sendResponse({ success: true, message: data.message })
-						: sendResponse({ success: false, message: data.message })
-				)
-				.catch(error => sendResponse({ success: false, message: error }));
+				.then(data => {
+					if (data.success) {
+						sendResponse({ success: true, message: data.message });
+					} else {
+						sendResponse({ success: false, message: data.message });
+					}
+				})
+				.catch(error => sendResponse({ success: false, message: error.message }));
 		} else {
-			return sendResponse({ success: false, message: 'Not authenticated' });
+			sendResponse({ success: false, message: 'Not authenticated' });
 		}
 	});
+	return true;
 }
 //! stage 3: checkMinHash handler
 function handlerCheckMinMash(submittedURL, sendResponse) {
@@ -286,21 +293,20 @@ function handlerCheckMinMash(submittedURL, sendResponse) {
 			})
 				.then(res => res.json())
 				.then(data => {
-					return sendResponse({ success: data.success, message: data.message });
+					sendResponse({ success: data.success, message: data.message });
 				})
 				.catch(error => {
-					return sendResponse({ success: false, message: error });
+					sendResponse({ success: false, message: error.message });
 				});
 		} else {
-			return sendResponse({ success: false, message: 'Not authenticated' });
+			sendResponse({ success: false, message: 'Not authenticated' });
 		}
 	});
-
 	return true;
 }
-
 //! stage 4: handlerCreateNewQuery
-function handlerCreateNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore, sendResponse) {
+function handlerCreateNewQuery(payload, sendResponse) {
+	const { canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore } = payload;
 	chrome.storage.local.get('authToken', result => {
 		if (result.authToken) {
 			fetch(`${apiUrl}/sites/new_query`, {
@@ -313,16 +319,16 @@ function handlerCreateNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhi
 			})
 				.then(res => res.json())
 				.then(data => {
-					return sendResponse({ success: data.success, message: data.message });
+					sendResponse({ success: data.success, message: data.message });
 				})
 				.catch(error => {
-					return sendResponse({ success: false, message: error });
+					sendResponse({ success: false, message: error.message });
 				});
 		} else {
-			return sendResponse({ success: false, message: 'Not authenticated' });
+			// Handle unauthenticated state
+			sendResponse({ success: false, message: 'Not authenticated' });
 		}
 	});
-
 	return true;
 }
 

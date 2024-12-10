@@ -12,16 +12,31 @@ const {
 } = require('../utils/cyber/similarityScoring');
 const { compareCertificates, fetchSSLCertificate } = require('../utils/certificate/certificate');
 
+//! stage 2: check CV
 router.post('/check_cv', async (req, res) => {
-	const { whitelistUrl, submittedUrl } = req.body;
+	const { canonicalUrl, submittedUrl } = req.body;
+
+	if (!canonicalUrl || !submittedUrl) {
+		return res.status(400).json({
+			success: false,
+			message: 'Both canonicalUrl and submittedUrl are required.'
+		});
+	}
 
 	try {
 		// Fetch the new certificate for the submitted URL
 		const newCertificate = await fetchSSLCertificate(submittedUrl);
+		if (!newCertificate) {
+			console.error('Failed to fetch SSL certificate for:', submittedUrl);
+			return res.status(500).json({
+				success: false,
+				message: 'Could not fetch SSL certificate for the submitted URL.'
+			});
+		}
 
 		// Find the monitored site by its canonical URL (whitelist URL)
 		const monitoredSite = await MonitoredSite.findOne({
-			canonicalUrl: whitelistUrl
+			canonicalUrl: canonicalUrl
 		}).populate('certificate');
 
 		if (!monitoredSite || !monitoredSite.certificate) {
@@ -30,12 +45,15 @@ router.post('/check_cv', async (req, res) => {
 				message: 'No certificate found for this monitored site.'
 			});
 		}
-		console.log(monitoredSite.certificate, newCertificate);
+
+		console.log('Stored Certificate:', monitoredSite.certificate);
+		console.log('Fetched Certificate:', newCertificate);
 
 		// Compare the stored certificate with the newly fetched certificate
 		const certificatesComparisonResult = await compareCertificates(monitoredSite.certificate, newCertificate);
 
-		if (!certificatesComparisonResult) {
+		if (certificatesComparisonResult === undefined || certificatesComparisonResult === null) {
+			console.error('Certificate comparison failed.');
 			return res.status(500).json({
 				success: false,
 				message: 'Failed to process submitted URL.'
@@ -58,10 +76,37 @@ router.post('/check_cv', async (req, res) => {
 		console.error('Error processing certificates:', err);
 		return res.status(500).json({
 			success: false,
-			message: err.message
+			message: 'An error occurred while processing the certificates.'
 		});
 	}
 });
+
+//^  new_query
+router.post('/new_query', async (req, res) => {
+	const { canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore } = req.body;
+	console.log('Canonical URL being queried:', canonicalUrl.canonicalUrl);
+	try {
+		// Find the monitored site by its canonical URL (whitelist URL)
+		const monitoredSite = await MonitoredSite.findOne({
+			canonicalUrl,
+			submittedURLCopy,
+			isInSubscribedWhitelist,
+			cvScore
+		});
+		if (!monitoredSite) {
+			return res.status(404).json({
+				success: false,
+				message: 'monitored site Not found.'
+			});
+		}
+		await storeNewQuery(monitoredSite, canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore);
+	} catch (err) {}
+	return res.status(200).json({
+		success: false,
+		message: 'Low similarity score.'
+	});
+});
+//^  check_url
 router.post('/check_url', async (req, res) => {
 	const { url } = req.body;
 
@@ -96,32 +141,6 @@ router.post('/check_url', async (req, res) => {
 			similarity
 		});
 	}
-});
-router.post('/new_query', async (req, res) => {
-	const { canonicalUrl } = req.body;
-	console.log('Canonical URL being queried:', canonicalUrl.canonicalUrl);
-	try {
-		// Find the monitored site by its canonical URL (whitelist URL)
-		const monitoredSite = await MonitoredSite.findOne({
-			canonicalUrl: canonicalUrl.canonicalUrl
-		});
-		if (!monitoredSite) {
-			return res.status(404).json({
-				success: false,
-				message: 'monitored site Not found.'
-			});
-		}
-		await storeNewQuery(
-			monitoredSite,
-			canonicalUrl.submittedURLCopy,
-			canonicalUrl.isInSubscribedWhitelist,
-			canonicalUrl.cvScore
-		);
-	} catch (err) {}
-	return res.status(200).json({
-		success: false,
-		message: 'Low similarity score.'
-	});
 });
 
 module.exports = router;

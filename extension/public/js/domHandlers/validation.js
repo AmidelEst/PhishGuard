@@ -59,7 +59,7 @@ export const validateLoginPassword = () => {
 	let isValid = true;
 
 	// Validate password length (8-20 characters)
-	if (password.length < 8 || password.length > 20) {
+	if (password.length < 2 || password.length > 20) {
 		getElement('passwordLengthFeedback').style.display = 'block';
 		isValid = false;
 	}

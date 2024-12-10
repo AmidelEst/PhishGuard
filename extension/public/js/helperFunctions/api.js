@@ -50,9 +50,10 @@ export const checkCertificate = async (canonicalUrl, submittedURL) => {
 		// Send message to the background to fetch the URLs
 		const response = await sendMessageToBackground({
 			message: 'checkCertificate',
-			payload: { whitelistUrl: canonicalUrl, submittedUrl: submittedURL }
+			payload: { canonicalUrl: canonicalUrl, submittedUrl: submittedURL }
 		});
 		if (response.success) {
+			console.log(response.message);
 			showNotification(response.message, response.success);
 		} else {
 			showNotification('Failed to load admin list. Please try again later.', false);
@@ -60,7 +61,7 @@ export const checkCertificate = async (canonicalUrl, submittedURL) => {
 
 		return response.success;
 	} catch (error) {
-		console.log('Failed to checkCertificate:', error);
+		console.log('Failed to checkCertificate:', error.message);
 		showNotification('Failed to checkCertificate.', false);
 		return [];
 	}
@@ -87,7 +88,12 @@ export const createNewQuery = async (canonicalUrl, submittedURLCopy, isInSubscri
 			message: 'createNewQuery',
 			payload: { canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore }
 		});
-		showNotification('Failed to load admin list. Please try again later.', false);
+		if (response.success) {
+			showNotification(response.message, response.success);
+		} else {
+			showNotification('Failed to load create New Query.', false);
+		}
+		showNotification('Failed to load create New Query2. Please try again later.', false);
 	} catch (error) {
 		return { message: error, success: false };
 	}

@@ -5,13 +5,13 @@ FROM node:18
 WORKDIR /usr/src/app
 
 # Step 3: Copy package.json and package-lock.json into the container
-COPY package.json package-lock.json ./
+COPY package*.json  ./
 
-# Step 4: Install dependencies (including bcryptjs)
+# Step 4: Install dependencies
 RUN npm install
 
 # Step 5: Copy the rest of the app into the container
-COPY . .
+COPY .  .
 
 # Step 6: Expose the port that the server will run on
 EXPOSE 3001
@@ -20,4 +20,4 @@ EXPOSE 3001
 ENV NODE_ENV production
 
 # Step 8: Start the app
-CMD ["node", "server.js"]
+CMD ["npm", "run","dev"]
