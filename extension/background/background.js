@@ -253,7 +253,7 @@ function fetchSubscribedWhitelist(subscribedWhitelistId, sendResponse) {
 //!----------ALGORITHMS ----------PRIVATE---------//
 //! stage 2: check CV handler
 function handleCheckCertificate(payload, sendResponse) {
-	const { canonicalUrl, submittedURL } = payload;
+	const { canonicalUrl, submittedUrl } = payload;
 	chrome.storage.local.get('authToken', result => {
 		if (result.authToken) {
 			fetch(`${apiUrl}/sites/check_cv`, {
@@ -262,7 +262,7 @@ function handleCheckCertificate(payload, sendResponse) {
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${result.authToken}`
 				},
-				body: JSON.stringify(canonicalUrl, submittedURL)
+				body: JSON.stringify({ canonicalUrl, submittedUrl })
 			})
 				.then(res => res.json())
 				.then(data => {
@@ -272,7 +272,7 @@ function handleCheckCertificate(payload, sendResponse) {
 						sendResponse({ success: false, message: data.message });
 					}
 				})
-				.catch(error => sendResponse({ success: false, message: error.message }));
+				.catch(error => sendResponse({ success: false, message: 'Not success' }));
 		} else {
 			sendResponse({ success: false, message: 'Not authenticated' });
 		}
@@ -280,7 +280,7 @@ function handleCheckCertificate(payload, sendResponse) {
 	return true;
 }
 //! stage 3: checkMinHash handler
-function handlerCheckMinMash(submittedURL, sendResponse) {
+function handlerCheckMinMash(submittedUrl, sendResponse) {
 	chrome.storage.local.get('authToken', result => {
 		if (result.authToken) {
 			fetch(`${apiUrl}/sites/check_url`, {
@@ -289,7 +289,7 @@ function handlerCheckMinMash(submittedURL, sendResponse) {
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${result.authToken}`
 				},
-				body: JSON.stringify(submittedURL)
+				body: JSON.stringify({ submittedUrl })
 			})
 				.then(res => res.json())
 				.then(data => {

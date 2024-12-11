@@ -45,31 +45,25 @@ export const logoutUser = callback => {
 };
 //!----------ALGORITHMS - PRIVATE---------//
 //! stage 2: check CV
-export const checkCertificate = async (canonicalUrl, submittedURL) => {
+export const checkCertificate = async (canonicalUrl, submittedUrl) => {
 	try {
 		// Send message to the background to fetch the URLs
 		const response = await sendMessageToBackground({
 			message: 'checkCertificate',
-			payload: { canonicalUrl: canonicalUrl, submittedUrl: submittedURL }
+			payload: { canonicalUrl, submittedUrl: submittedUrl }
 		});
-		if (response.success) {
-			console.log(response.message);
-			showNotification(response.message, response.success);
-		} else {
-			showNotification('Failed to load admin list. Please try again later.', false);
-		}
-
-		return response.success;
+		showNotification(response.message, response.success);
+		return response.success; // Add this return statement
 	} catch (error) {
-		console.log('Failed to checkCertificate:', error.message);
+		console.log('Failed to checkCertificate:', error);
 		showNotification('Failed to checkCertificate.', false);
-		return [];
+		return false; // Add this return statement
 	}
 };
 //!	stage 3: checkMinHash
 export const checkMinMash = async formattedSubmittedURL => {
 	try {
-		//& Send message to the background to fetch the URLs
+		//! Send message to the background to fetch the URLs
 		const response = await sendMessageToBackground({
 			message: 'checkMinMash',
 			payload: { url: formattedSubmittedURL }
@@ -80,7 +74,7 @@ export const checkMinMash = async formattedSubmittedURL => {
 		showNotification('Failed to checkMinMash.', false);
 	}
 };
-//&	stage 4: createNewQuery
+//&	stage : createNewQuery
 export const createNewQuery = async (canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, cvScore) => {
 	try {
 		//& Send message to the background
@@ -98,6 +92,7 @@ export const createNewQuery = async (canonicalUrl, submittedURLCopy, isInSubscri
 		return { message: error, success: false };
 	}
 };
+//&	stage : createNewQuery
 export const newQuery = async (submittedURLCopy, isInSubscribedWhitelist, cvScore, minHashScore, overAllScore) => {
 	try {
 		//& Send message to the background

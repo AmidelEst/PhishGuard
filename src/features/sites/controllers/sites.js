@@ -15,7 +15,7 @@ const { compareCertificates, fetchSSLCertificate } = require('../utils/certifica
 //! stage 2: check CV
 router.post('/check_cv', async (req, res) => {
 	const { canonicalUrl, submittedUrl } = req.body;
-
+	console.log(canonicalUrl + '\t' + submittedUrl);
 	if (!canonicalUrl || !submittedUrl) {
 		return res.status(400).json({
 			success: false,
@@ -38,6 +38,7 @@ router.post('/check_cv', async (req, res) => {
 		const monitoredSite = await MonitoredSite.findOne({
 			canonicalUrl: canonicalUrl
 		}).populate('certificate');
+		console.log('Stored Certificate:', monitoredSite.certificate);
 
 		if (!monitoredSite || !monitoredSite.certificate) {
 			return res.status(404).json({
@@ -46,8 +47,8 @@ router.post('/check_cv', async (req, res) => {
 			});
 		}
 
-		console.log('Stored Certificate:', monitoredSite.certificate);
-		console.log('Fetched Certificate:', newCertificate);
+		// console('Stored Certificate:', monitoredSite.certificate);
+		// console('Fetched Certificate:', newCertificate);
 
 		// Compare the stored certificate with the newly fetched certificate
 		const certificatesComparisonResult = await compareCertificates(monitoredSite.certificate, newCertificate);

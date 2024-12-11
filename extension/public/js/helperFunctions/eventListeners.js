@@ -51,14 +51,13 @@ const handleSendUrlFormSubmit = () => {
 		sendUrlForm.addEventListener('submit', async e => {
 			e.preventDefault();
 
-			let submittedURL = getElement('urlField').value.trim().toLowerCase();
-			const submittedURLCopy = submittedURL;
-			console.log('52= ' + submittedURL);
+			let submittedUrl = getElement('urlField').value.trim().toLowerCase();
+			const submittedURLCopy = submittedUrl;
 
 			// Validate URL field
 			const isUrlValid = validateUrlField();
-			submittedURL = formatAndNormalizeUrl(submittedURL);
-			console.log('formatAndNormalizeUrl: ' + submittedURL);
+			submittedUrl = formatAndNormalizeUrl(submittedUrl);
+			console.log('formatAndNormalizeUrl: ' + submittedUrl);
 
 			// If URL is valid, proceed with form submission
 			if (isUrlValid) {
@@ -66,9 +65,10 @@ const handleSendUrlFormSubmit = () => {
 					const subscribedWhitelist = await getUserSubscribedWhitelist();
 
 					//^ Step 1: relevant to all levels : Check if URL is in the whitelist
-					const { success, canonicalUrl } = isUrlInWhitelist(submittedURL, subscribedWhitelist);
+					const { success, canonicalUrl } = await isUrlInWhitelist(submittedUrl, subscribedWhitelist);
 					const isInSubscribedWhitelist = success;
 
+					console.log(isInSubscribedWhitelist);
 					if (isInSubscribedWhitelist) {
 						console.log(submittedURLCopy + ' Found in whitelist');
 						showNotification('URL is in subscribed whitelist.', isInSubscribedWhitelist);
@@ -77,7 +77,7 @@ const handleSendUrlFormSubmit = () => {
 						return;
 					}
 					//^ Step 2: relevant to all levels
-					const isCvCheckSuccess = await checkCertificate(canonicalUrl, submittedURL);
+					const isCvCheckSuccess = await checkCertificate(canonicalUrl, submittedUrl);
 
 					console.log('isCvCheckSuccess:', isCvCheckSuccess);
 					if (!isCvCheckSuccess) {
@@ -85,7 +85,7 @@ const handleSendUrlFormSubmit = () => {
 					}
 					//* createNewQuery //! accumulate results
 
-					createNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, isCvCheckSuccess);
+					// createNewQuery(canonicalUrl, submittedURLCopy, isInSubscribedWhitelist, isCvCheckSuccess);
 					//! Step 3: only medium and high
 					const checkMinHashResult = await checkMinMash(canonicalUrl);
 					// let minHashScore = checkMinHashResult.similarity;
@@ -94,7 +94,7 @@ const handleSendUrlFormSubmit = () => {
 					// newQuery(submittedURLCopy, isInSubscribedWhitelist, cvScore, minHashScore, overAllScore);
 				} catch (error) {
 					console.log('Error ' + error);
-					showNotification(error.message, false);
+					showNotification(error, false);
 				}
 			}
 		});

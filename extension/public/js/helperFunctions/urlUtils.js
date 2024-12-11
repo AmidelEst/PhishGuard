@@ -1,6 +1,5 @@
 //------------------------------------------------------//
 // extension/public/js/helperFunctions/urlUtils.js
-//
 export const extractBaseUrl = url => {
 	try {
 		const { hostname } = new URL(url);
@@ -11,26 +10,6 @@ export const extractBaseUrl = url => {
 		return null;
 	}
 };
-
-// // Utility function to normalize a URL
-// export function normalizeUrl(url) {
-// 	try {
-// 		const lowerUrl = url.toLowerCase();
-// 		console.log(lowerUrl);
-// 		const parsedUrl = new URL(lowerUrl);
-// 		return parsedUrl.origin;
-// 	} catch (error) {
-// 		console.log('Invalid URL:', error.message);
-// 		return null;
-// 	}
-// }
-// // Format submitted URL with the correct prefix if missing
-// export const formatSubmittedUrl = url => {
-// 	if (!/^https?:\/\//i.test(url)) {
-// 		url = /^www\./i.test(url) ? `https://${url}` : `https://www.${url}`;
-// 	}
-// 	return url;
-// };
 
 export function formatAndNormalizeUrl(url) {
 	try {
@@ -50,8 +29,7 @@ export function formatAndNormalizeUrl(url) {
 		return null;
 	}
 }
-
-
+//&
 export function isUrlInWhitelist(submittedUrl, whitelist) {
 	console.log('SubmittedUrl:' + submittedUrl);
 
@@ -64,7 +42,7 @@ export function isUrlInWhitelist(submittedUrl, whitelist) {
 
 	// Loop through the whitelist and check for a match
 	for (const url of whitelist) {
-		console.log('WhitelistUrl:' + url);
+		// console.log('WhitelistUrl:' + url);
 
 		// Normalize the whitelist URL
 		const normalizedWhitelistUrl = normalizeUrl(url);
@@ -81,7 +59,7 @@ export function isUrlInWhitelist(submittedUrl, whitelist) {
 	return { success: false, message: 'URL not found in whitelist' };
 }
 
-// Helper function to normalize URLs
+//! Helper function to normalize URLs
 function normalizeUrl(url) {
 	try {
 		const parsedUrl = new URL(url);
@@ -96,4 +74,3 @@ function normalizeUrl(url) {
 		return url; // Return the original URL if it can't be parsed
 	}
 }
-
