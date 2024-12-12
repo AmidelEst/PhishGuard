@@ -4,12 +4,17 @@ services:
   app:
     build:
       context: .
+      args:
+        NODE_ENV: ${NODE_ENV}
+        MONGO_URI: ${MONGO_URI}
+        REDIS_HOST: redis
+        REDIS_PORT: ${REDIS_PORT}
     ports:
       - '3001:3001'
     environment:
       MONGO_URI: ${MONGO_URI}
       REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - mongo
       - redis
